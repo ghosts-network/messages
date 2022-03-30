@@ -1,16 +1,26 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GhostNetwork.Messages
 {
     public interface IChatService
     {
-        Task SendMessage(Guid from, Guid to, Message message);
+        Task<(IEnumerable<Guid>, long)> SearchExistChatsAsync(int slip, int take, Guid userId);
 
-        Task ConnectToChat(Guid chatId);
+        Task<Guid> GetExistChatByIdAsync(Guid chatId);
 
-        Task DeleteMessage(Guid senderId, Guid chatId, Guid messageId);
+        Task<Guid> CreateNewChatAsync(Chat newChat);
 
-        Task UpdateMessage(Guid senderId, Guid chatId, Guid messageId, Message updateMessage);
+        Task DeleteChatAsync(Guid chatId);
+
+        Task<IEnumerable<Message>> GetChatHistoryAsync(Guid chatId);
+
+        Task SendMessageAsync(Message message);
+
+        Task DeleteMessageAsync(string messageId);
+
+        Task UpdateMessageAsync(string messageId, string message);
     }
 }

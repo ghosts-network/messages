@@ -1,12 +1,16 @@
+using System;
+using System.Threading.Tasks;
 using GhostNetwork.Messages.Api.Helpers.OpenApi;
+using GhostNetwork.Messages.Api.Hubs;
+using GhostNetwork.Messages.MongoDb;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using GhostNetwork.Messages.MongoDb;
 using MongoDB.Driver;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace GhostNetwork.Messages.Api
 {
@@ -24,6 +28,7 @@ namespace GhostNetwork.Messages.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSignalR();
 
             services.AddSwaggerGen(options =>
             {
@@ -35,6 +40,7 @@ namespace GhostNetwork.Messages.Api
                 });
 
                 options.IncludeXmlComments(XmlPathProvider.XmlPath);
+                options.OperationFilter<AddResponseHeadersFilter>();
             });
 
             services.AddScoped(_ =>
@@ -48,7 +54,7 @@ namespace GhostNetwork.Messages.Api
             services.AddScoped<IChatService, MongoChatStorage>();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider provider)
         {
             if (env.IsDevelopment())
             {
@@ -58,6 +64,9 @@ namespace GhostNetwork.Messages.Api
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "GhostNetwork.Messages.Api v1");
                     c.DisplayRequestDuration();
+
+                    var chatService = provider.GetRequiredService<IChatService>();
+                    SeedData(chatService).GetAwaiter().GetResult();
                 });
             }
 
@@ -68,7 +77,22 @@ namespace GhostNetwork.Messages.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/chat");
             });
+        }
+
+        private async Task SeedData(IChatService chatService)
+        {
+            var chatId = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+            var sender = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa1");
+            var receiver = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa2");
+
+            if (await chatService.GetExistChatByIdAsync(chatId) == Guid.Empty)
+            {
+                var newChat = Chat.NewChat(chatId, sender, receiver);
+
+                await chatService.CreateNewChatAsync(newChat);
+            }
         }
     }
 }

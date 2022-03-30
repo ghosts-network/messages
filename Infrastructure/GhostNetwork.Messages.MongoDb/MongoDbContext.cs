@@ -10,7 +10,11 @@ namespace GhostNetwork.Messages.MongoDb
         {
             _database = database;
         }
-        
-        
+
+        public IMongoCollection<ChatEntity> Chat =>
+            _database.GetCollection<ChatEntity>("chat");
+
+        public IMongoCollection<MessageEntity> Message =>
+            _database.GetCollection<MessageEntity>("message");
     }
 }

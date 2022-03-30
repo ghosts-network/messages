@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{37AAB735
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "loadTests", "loadTests", "{C953F0A1-9658-4EAE-A16C-DACE613ED055}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "signalRClient", "signalRClient", "{916962A4-7070-44F2-A8BB-0C0262BA1BA5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,5 +36,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{8AE751C0-32CB-4024-B14B-8F73881F799E} = {52F71BFE-AAC6-4B1D-9B35-83D4A3D7D51B}
 		{C953F0A1-9658-4EAE-A16C-DACE613ED055} = {37AAB735-7A3F-4CB4-832A-C739C812FDFD}
+		{916962A4-7070-44F2-A8BB-0C0262BA1BA5} = {37AAB735-7A3F-4CB4-832A-C739C812FDFD}
 	EndGlobalSection
 EndGlobal

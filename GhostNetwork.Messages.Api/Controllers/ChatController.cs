@@ -147,7 +147,7 @@ namespace GhostNetwork.Messages.Api.Controllers
         /// Update message
         /// </summary>
         /// <param name="messageId">Message id</param>
-        /// <param name="message">Updated message</param>
+        /// <param name="model">Updated model</param>
         /// <response code="204">Successfully updated</response>
         /// <response code="400">Smt went wrong</response>
         [HttpPut("message/{messageId:guid}")]

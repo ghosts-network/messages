@@ -14,14 +14,14 @@ namespace GhostNetwork.Messages.Api
 {
     public class Startup
     {
+        private const string DefaultDbName = "messages";
+
         public Startup(IConfiguration configuration)
         {
-            this.configuration = configuration;
+            Configuration = configuration;
         }
 
-        private IConfiguration configuration { get; }
-
-        private const string DefaultDbName = "messages";
+        private IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -43,7 +43,7 @@ namespace GhostNetwork.Messages.Api
 
             services.AddScoped(_ =>
             {
-                var connectionString = configuration["MONGO_CONNECTION"];
+                var connectionString = Configuration["MONGO_CONNECTION"];
                 var mongoUrl = MongoUrl.Create(connectionString);
                 var client = new MongoClient(mongoUrl);
                 return new MongoDbContext(client.GetDatabase(mongoUrl.DatabaseName ?? DefaultDbName));
@@ -60,13 +60,14 @@ namespace GhostNetwork.Messages.Api
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "GhostNetwork.Messages.Api v1");
-                    c.DisplayRequestDuration();
-                });
             }
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "GhostNetwork.Messages.Api v1");
+                c.DisplayRequestDuration();
+            });
 
             app.UseCors(x =>
             {

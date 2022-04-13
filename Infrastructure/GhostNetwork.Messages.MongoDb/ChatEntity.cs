@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -9,10 +11,7 @@ namespace GhostNetwork.Messages.MongoDb
         [BsonId]
         public Guid Id { get; set; }
 
-        [BsonElement("senderId")]
-        public Guid SenderId { get; set; }
-
-        [BsonElement("receiverId")]
-        public Guid ReceiverId { get; set; }
+        [BsonElement("usersIds")]
+        public IEnumerable<Guid> UsersIds { get; set; }
     }
 }

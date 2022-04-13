@@ -1,24 +1,25 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace GhostNetwork.Messages;
 
 public class Chat
 {
-    public Chat(Guid id, Guid senderId, Guid receiverId)
+    public Chat(Guid id, IEnumerable<Guid> usersIds)
     {
         Id = id;
-        SenderId = senderId;
-        ReceiverId = receiverId;
+        UsersIds = usersIds;
     }
 
-    public Guid Id { get; set; }
+    public Guid Id { get; }
 
-    public Guid SenderId { get; set; }
+    public IEnumerable<Guid> UsersIds { get; private set; }
 
-    public Guid ReceiverId { get; set; }
-
-    public static Chat NewChat(Guid id, Guid senderId, Guid receiverId)
+    public static Chat NewChat(IEnumerable<Guid> usersIds)
     {
-        return new Chat(id, senderId, receiverId);
+        var id = Guid.NewGuid();
+
+        return new Chat(id, usersIds);
     }
 }

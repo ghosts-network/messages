@@ -18,6 +18,9 @@ public class MessageEntity
     [BsonElement("sentOn")]
     public DateTimeOffset SentOn { get; set; }
 
+    [BsonElement("isUpdated")]
+    public bool IsUpdated { get; set; }
+
     [BsonElement("data")]
     public string Data { get; set; }
 }

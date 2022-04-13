@@ -1,7 +1,5 @@
 using System;
-using System.Threading.Tasks;
 using GhostNetwork.Messages.Api.Helpers.OpenApi;
-using GhostNetwork.Messages.Api.Hubs;
 using GhostNetwork.Messages.MongoDb;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -51,7 +49,10 @@ namespace GhostNetwork.Messages.Api
                 return new MongoDbContext(client.GetDatabase(mongoUrl.DatabaseName ?? DefaultDbName));
             });
 
-            services.AddScoped<IChatService, MongoChatStorage>();
+            services.AddScoped<IChatStorage, MongoChatStorage>();
+            services.AddScoped<IChatService, ChatService>();
+
+            services.AddScoped<IMessageStorage, MongoMessageStorage>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider provider)
@@ -64,11 +65,15 @@ namespace GhostNetwork.Messages.Api
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "GhostNetwork.Messages.Api v1");
                     c.DisplayRequestDuration();
-
-                    var chatService = provider.GetRequiredService<IChatService>();
-                    SeedData(chatService).GetAwaiter().GetResult();
                 });
             }
+
+            app.UseCors(x =>
+            {
+                x.AllowAnyHeader();
+                x.AllowAnyMethod();
+                x.AllowAnyOrigin();
+            });
 
             app.UseHttpsRedirection();
             app.UseRouting();
@@ -77,22 +82,7 @@ namespace GhostNetwork.Messages.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<ChatHub>("/chat");
             });
-        }
-
-        private async Task SeedData(IChatService chatService)
-        {
-            var chatId = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6");
-            var sender = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa1");
-            var receiver = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa2");
-
-            if (await chatService.GetExistChatByIdAsync(chatId) == Guid.Empty)
-            {
-                var newChat = Chat.NewChat(chatId, sender, receiver);
-
-                await chatService.CreateNewChatAsync(newChat);
-            }
         }
     }
 }

@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace GhostNetwork.Messages.MongoDb
 {
-    public class MongoChatStorage : IChatService
+    public class MongoChatStorage : IChatStorage
     {
         private readonly MongoDbContext _context;
 
@@ -16,34 +16,36 @@ namespace GhostNetwork.Messages.MongoDb
             _context = context;
         }
 
-        public async Task<(IEnumerable<Guid>, long)> SearchExistChatsAsync(int slip, int take, Guid userId)
+        public async Task<(IEnumerable<Guid>, long)> SearchChatsAsync(int skip, int take, Guid userId)
         {
-            var filter = Builders<ChatEntity>.Filter.Eq(p => p.ReceiverId, userId)
-                         | Builders<ChatEntity>.Filter.Eq(p => p.SenderId, userId);
+            var filter = Builders<ChatEntity>.Filter.AnyEq(p => p.UsersIds, userId);
 
             var totalCount = await _context.Chat.Find(filter).CountDocumentsAsync();
 
-            var existChats = await _context.Chat.Find(filter).ToListAsync();
+            var existChats = await _context.Chat
+                .Find(filter)
+                .Skip(skip)
+                .Limit(take)
+                .ToListAsync();
 
             return (existChats.Select(x => x.Id), totalCount);
         }
 
-        public async Task<Guid> GetExistChatByIdAsync(Guid chatId)
+        public async Task<Chat> GetChatByIdAsync(Guid chatId)
         {
             var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chatId);
 
             var entity = await _context.Chat.Find(filter).FirstOrDefaultAsync();
 
-            return entity?.Id ?? Guid.Empty;
+            return entity is null ? null : ToDomain(entity);
         }
 
-        public async Task<Guid> CreateNewChatAsync(Chat newChat)
+        public async Task<Guid> CreateNewChatAsync(Chat chat)
         {
             var entity = new ChatEntity()
             {
-                Id = newChat.Id,
-                SenderId = newChat.SenderId,
-                ReceiverId = newChat.ReceiverId
+                Id = chat.Id,
+                UsersIds = chat.UsersIds
             };
 
             await _context.Chat.InsertOneAsync(entity);
@@ -51,59 +53,32 @@ namespace GhostNetwork.Messages.MongoDb
             return entity.Id;
         }
 
-        public async Task DeleteChatAsync(Guid chatId)
+        public async Task AddNewUsersToChatAsync(Guid chatId, IEnumerable<Guid> users)
         {
             var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chatId);
 
-            await _context.Chat.DeleteManyAsync(filter);
+            var entity = await _context.Chat.Find(filter).FirstOrDefaultAsync();
+
+            var update = Builders<ChatEntity>.Update
+                .Set(p => p.UsersIds, users.Concat(entity.UsersIds));
+
+            await _context.Chat.UpdateOneAsync(filter, update);
         }
 
-        public Task<IEnumerable<Message>> GetChatHistoryAsync(Guid chatId)
+        public async Task DeleteChatAsync(Guid chatId)
         {
-            throw new NotImplementedException();
+            var messageFilter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
+            var chatFilter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chatId);
+
+            await _context.Message.DeleteManyAsync(messageFilter);
+            await _context.Chat.DeleteOneAsync(chatFilter);
         }
 
-        public async Task SendMessageAsync(Message message)
+        private static Chat ToDomain(ChatEntity entity)
         {
-            var entity = new MessageEntity()
-            {
-                ChatId = message.ChatId,
-                SenderId = message.SenderId,
-                SentOn = message.SentOn,
-                Data = message.Data
-            };
-
-            await _context.Message.InsertOneAsync(entity);
-        }
-
-        public Task DeleteMessageAsync(string messageId)
-        {
-            if (!ObjectId.TryParse(messageId, out var oId))
-            {
-                return null;
-            }
-
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateMessageAsync(string messageId, string message)
-        {
-            if (!ObjectId.TryParse(messageId, out var oId))
-            {
-                return null;
-            }
-
-            throw new NotImplementedException();
-        }
-
-        private static Message ToDomain(MessageEntity entity)
-        {
-            return new Message(
-                entity.Id.ToString(),
-                entity.ChatId,
-                entity.SenderId,
-                entity.SentOn,
-                entity.Data);
+            return new Chat(
+                entity.Id,
+                entity.UsersIds);
         }
     }
 }

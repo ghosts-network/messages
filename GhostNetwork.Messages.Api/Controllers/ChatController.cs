@@ -46,6 +46,8 @@ namespace GhostNetwork.Messages.Api.Controllers
         /// Get chat info
         /// </summary>
         /// <param name="chatId">Chat id</param>
+        /// <response code="200">Chat info</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpGet("{chatId:guid}")]
         public async Task<ActionResult<Guid>> GetExistChatAsync([FromRoute] Guid chatId)
         {

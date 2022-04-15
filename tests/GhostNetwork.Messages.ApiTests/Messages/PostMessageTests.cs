@@ -20,7 +20,9 @@ public class PostMessageTests
         
         var message = new Message(Guid.NewGuid(), model.ChatId, model.SenderId, DateTimeOffset.Now, false, model.Message);
 
-        var serviceMock = new Mock<IChatService>();
+        var serviceMock = new Mock<IMessageService>();
+        var chatServiceMock = new Mock<IChatService>();
+        
         serviceMock
             .Setup(x => x.SendMessageAsync(model.ChatId, model.SenderId, model.Message))
             .ReturnsAsync((DomainResult.Success(), message));
@@ -28,6 +30,7 @@ public class PostMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => chatServiceMock.Object);
         });
         
         //Act
@@ -43,7 +46,9 @@ public class PostMessageTests
         //Setup
         var model = new CreateMessageModel(Guid.NewGuid(), Guid.NewGuid(), "Test");
 
-        var serviceMock = new Mock<IChatService>();
+        var serviceMock = new Mock<IMessageService>();
+        var chatServiceMock = new Mock<IChatService>();
+        
         serviceMock
             .Setup(x => x.SendMessageAsync(model.ChatId, model.SenderId, model.Message))
             .ReturnsAsync((DomainResult.Error(""), default));
@@ -51,6 +56,7 @@ public class PostMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => chatServiceMock.Object);
         });
         
         //Act

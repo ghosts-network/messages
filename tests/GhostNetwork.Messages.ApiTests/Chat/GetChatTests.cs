@@ -25,6 +25,8 @@ public class GetChatTests
         var chat = GhostNetwork.Messages.Chat.NewChat(users);
 
         var serviceMock = new Mock<IChatService>();
+        var messageServiceMock = new Mock<IMessageService>();
+        
         serviceMock
             .Setup(x => x.GetChatByIdAsync(chat.Id))
             .ReturnsAsync(chat);
@@ -32,6 +34,7 @@ public class GetChatTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => messageServiceMock.Object);
         });
         
         //Act
@@ -55,6 +58,8 @@ public class GetChatTests
         };
 
         var serviceMock = new Mock<IChatService>();
+        var messageServiceMock = new Mock<IMessageService>();
+        
         serviceMock
             .Setup(x => x.SearchChatsAsync(skip, take, userId))
             .ReturnsAsync((users.Select(x => x.Id), users.Length));
@@ -62,6 +67,7 @@ public class GetChatTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => messageServiceMock.Object);
         });
         
         //Act

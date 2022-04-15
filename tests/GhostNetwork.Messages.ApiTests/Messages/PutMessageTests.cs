@@ -20,7 +20,9 @@ public class PutMessageTests
 
         var model = new UpdateMessageModel("Upd");
 
-        var serviceMock = new Mock<IChatService>();
+        var serviceMock = new Mock<IMessageService>();
+        var chatServiceMock = new Mock<IChatService>();
+        
         serviceMock
             .Setup(x => x.UpdateMessageAsync(messageId, model.Message))
             .ReturnsAsync(DomainResult.Success);
@@ -28,6 +30,7 @@ public class PutMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => chatServiceMock.Object);
         });
         
         //Act
@@ -45,7 +48,9 @@ public class PutMessageTests
 
         var model = new UpdateMessageModel("Upd");
 
-        var serviceMock = new Mock<IChatService>();
+        var serviceMock = new Mock<IMessageService>();
+        var chatServiceMock = new Mock<IChatService>();
+        
         serviceMock
             .Setup(x => x.UpdateMessageAsync(messageId, model.Message))
             .ReturnsAsync(DomainResult.Error(""));
@@ -53,6 +58,7 @@ public class PutMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => chatServiceMock.Object);
         });
         
         //Act

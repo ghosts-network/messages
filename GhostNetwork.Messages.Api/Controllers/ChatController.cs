@@ -13,10 +13,12 @@ namespace GhostNetwork.Messages.Api.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
+        private readonly IMessageService _messageService;
 
-        public ChatController(IChatService chatService)
+        public ChatController(IChatService chatService, IMessageService messageService)
         {
             _chatService = chatService;
+            _messageService = messageService;
         }
 
         /// <summary>
@@ -116,7 +118,7 @@ namespace GhostNetwork.Messages.Api.Controllers
             [FromQuery, Range(0, int.MaxValue)] int skip,
             [FromQuery, Range(1, 100)] int take)
         {
-            var (messages, totalCount) = await _chatService.GetChatHistoryAsync(skip, take, chatId);
+            var (messages, totalCount) = await _messageService.GetChatHistoryAsync(skip, take, chatId);
 
             Response.Headers.Add("X-TotalCount", totalCount.ToString());
             Response.Headers.Add("X-HasMore", (totalCount > skip + take).ToString());
@@ -135,7 +137,7 @@ namespace GhostNetwork.Messages.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> SendMessageAsync([FromBody] CreateMessageModel model)
         {
-            var (result, message) = await _chatService.SendMessageAsync(model.ChatId, model.SenderId, model.Message);
+            var (result, message) = await _messageService.SendMessageAsync(model.ChatId, model.SenderId, model.Message);
 
             if (!result.Successed)
             {
@@ -159,7 +161,7 @@ namespace GhostNetwork.Messages.Api.Controllers
             [FromRoute] Guid messageId,
             [FromBody] UpdateMessageModel model)
         {
-            var result = await _chatService.UpdateMessageAsync(messageId, model.Message);
+            var result = await _messageService.UpdateMessageAsync(messageId, model.Message);
 
             if (!result.Successed)
             {
@@ -180,7 +182,7 @@ namespace GhostNetwork.Messages.Api.Controllers
         public async Task<ActionResult> DeleteMessageAsync(
             [FromRoute] Guid messageId)
         {
-            await _chatService.DeleteMessageAsync(messageId);
+            await _messageService.DeleteMessageAsync(messageId);
 
             return NoContent();
         }

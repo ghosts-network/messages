@@ -16,25 +16,15 @@ namespace GhostNetwork.Messages
         Task AddNewUsersToChatAsync(Guid chatId, IEnumerable<Guid> newUsers);
 
         Task DeleteChatAsync(Guid chatId);
-
-        Task<(IEnumerable<Message>, long)> GetChatHistoryAsync(int skip, int take, Guid chatId);
-
-        Task<(DomainResult, Message)> SendMessageAsync(Guid chatId, Guid senderId, string data);
-
-        Task DeleteMessageAsync(Guid id);
-
-        Task<DomainResult> UpdateMessageAsync(Guid id, string data);
     }
 
     public class ChatService : IChatService
     {
         private readonly IChatStorage _chatStorage;
-        private readonly IMessageStorage _messageStorage;
 
-        public ChatService(IChatStorage chatStorage, IMessageStorage messageStorage)
+        public ChatService(IChatStorage chatStorage)
         {
             _chatStorage = chatStorage;
-            _messageStorage = messageStorage;
         }
 
         public async Task<(IEnumerable<Guid>, long)> SearchChatsAsync(int skip, int take, Guid userId)
@@ -62,32 +52,6 @@ namespace GhostNetwork.Messages
         public async Task DeleteChatAsync(Guid chatId)
         {
             await _chatStorage.DeleteChatAsync(chatId);
-        }
-
-        public async Task<(IEnumerable<Message>, long)> GetChatHistoryAsync(int skip, int take, Guid chatId)
-        {
-            return await _messageStorage.GetChatHistoryAsync(skip, take, chatId);
-        }
-
-        public async Task<(DomainResult, Message)> SendMessageAsync(Guid chatId, Guid senderId, string data)
-        {
-            var newMessage = Message.NewMessage(chatId, senderId, data);
-
-            var message = await _messageStorage.SendMessageAsync(newMessage);
-
-            return (DomainResult.Success(), message);
-        }
-
-        public async Task DeleteMessageAsync(Guid id)
-        {
-            await _messageStorage.DeleteMessageAsync(id);
-        }
-
-        public async Task<DomainResult> UpdateMessageAsync(Guid id, string data)
-        {
-            await _messageStorage.UpdateMessageAsync(id, data);
-
-            return DomainResult.Success();
         }
     }
 }

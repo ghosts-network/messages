@@ -53,6 +53,7 @@ namespace GhostNetwork.Messages.Api
             services.AddScoped<IChatService, ChatService>();
 
             services.AddScoped<IMessageStorage, MongoMessageStorage>();
+            services.AddScoped<IValidator<MessageContext>, MessageValidator>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider provider)

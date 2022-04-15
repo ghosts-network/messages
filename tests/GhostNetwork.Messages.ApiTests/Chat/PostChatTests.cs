@@ -24,6 +24,8 @@ public class PostChatTests
         var chat = GhostNetwork.Messages.Chat.NewChat(users);
 
         var serviceMock = new Mock<IChatService>();
+        var messageServiceMock = new Mock<IMessageService>();
+        
         serviceMock
             .Setup(x => x.CreateNewChatAsync(users))
             .ReturnsAsync(chat.Id);
@@ -31,6 +33,7 @@ public class PostChatTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => messageServiceMock.Object);
         });
         
         //Act

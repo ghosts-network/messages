@@ -25,7 +25,8 @@ public class GetMessageTests
             message
         };
 
-        var serviceMock = new Mock<IChatService>();
+        var serviceMock = new Mock<IMessageService>();
+        var chatServiceMock = new Mock<IChatService>();
 
         serviceMock
             .Setup(x => x.GetChatHistoryAsync(skip, take, chatId))
@@ -34,6 +35,7 @@ public class GetMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => chatServiceMock.Object);
         });
         
         //Act

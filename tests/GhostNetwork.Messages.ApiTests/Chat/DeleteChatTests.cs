@@ -16,13 +16,15 @@ public class DeleteChatTests
         //Setup
         var chatId = Guid.NewGuid();
 
-        var serviceMock = new Mock<IChatService>();
-        serviceMock
+        var chatServiceMock = new Mock<IChatService>();
+        var messageServiceMock = new Mock<IMessageService>();
+        chatServiceMock
             .Setup(x => x.DeleteChatAsync(chatId));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => chatServiceMock.Object);
+            collection.AddScoped(_ => messageServiceMock.Object);
         });
         
         //Act

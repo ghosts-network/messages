@@ -24,12 +24,15 @@ public class PutChatTests
         };
 
         var serviceMock = new Mock<IChatService>();
+        var messageServiceMock = new Mock<IMessageService>();
+        
         serviceMock
             .Setup(x => x.AddNewUsersToChatAsync(chatId, users));
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => messageServiceMock.Object);
         });
         
         //Act

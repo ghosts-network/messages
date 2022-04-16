@@ -1,5 +1,7 @@
 using System;
 using GhostNetwork.Messages.Api.Helpers.OpenApi;
+using GhostNetwork.Messages.Chats;
+using GhostNetwork.Messages.Messages;
 using GhostNetwork.Messages.MongoDb;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -51,8 +53,10 @@ namespace GhostNetwork.Messages.Api
 
             services.AddScoped<IChatStorage, MongoChatStorage>();
             services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<IValidator<ChatContext>, ChatValidator>();
 
             services.AddScoped<IMessageStorage, MongoMessageStorage>();
+            services.AddScoped<IMessageService, MessageService>();
             services.AddScoped<IValidator<MessageContext>, MessageValidator>();
         }
 

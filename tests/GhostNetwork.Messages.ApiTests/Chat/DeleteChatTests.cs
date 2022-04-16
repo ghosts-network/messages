@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Chats;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -17,14 +18,12 @@ public class DeleteChatTests
         var chatId = Guid.NewGuid();
 
         var chatServiceMock = new Mock<IChatService>();
-        var messageServiceMock = new Mock<IMessageService>();
         chatServiceMock
-            .Setup(x => x.DeleteChatAsync(chatId));
+            .Setup(x => x.DeleteAsync(chatId));
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => chatServiceMock.Object);
-            collection.AddScoped(_ => messageServiceMock.Object);
         });
         
         //Act

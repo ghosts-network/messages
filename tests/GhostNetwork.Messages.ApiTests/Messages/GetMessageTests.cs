@@ -26,20 +26,18 @@ public class GetMessageTests
         };
 
         var serviceMock = new Mock<IMessageService>();
-        var chatServiceMock = new Mock<IChatService>();
 
         serviceMock
-            .Setup(x => x.GetChatHistoryAsync(skip, take, chatId))
+            .Setup(x => x.SearchAsync(skip, take, chatId))
             .ReturnsAsync((messages, messages.Count));
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => chatServiceMock.Object);
         });
         
         //Act
-        var response = await client.GetAsync($"/Chat/{chatId}/history");
+        var response = await client.GetAsync($"/Message/{chatId}");
         
         //Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);

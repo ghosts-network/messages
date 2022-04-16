@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Chats;
 using MongoDB.Driver;
 
 namespace GhostNetwork.Messages.MongoDb
@@ -16,36 +16,37 @@ namespace GhostNetwork.Messages.MongoDb
             _context = context;
         }
 
-        public async Task<(IEnumerable<Guid>, long)> SearchChatsAsync(int skip, int take, Guid userId)
+        public async Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId)
         {
-            var filter = Builders<ChatEntity>.Filter.AnyEq(p => p.UsersIds, userId);
+            var filter = Builders<ChatEntity>.Filter.AnyEq(p => p.Users, userId);
 
             var totalCount = await _context.Chat.Find(filter).CountDocumentsAsync();
 
-            var existChats = await _context.Chat
+            var chats = await _context.Chat
                 .Find(filter)
                 .Skip(skip)
                 .Limit(take)
                 .ToListAsync();
 
-            return (existChats.Select(x => x.Id), totalCount);
+            return (chats.Select(ToDomain), totalCount);
         }
 
-        public async Task<Chat> GetChatByIdAsync(Guid chatId)
+        public async Task<Chat> GetByIdAsync(Guid id)
         {
-            var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chatId);
+            var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
             var entity = await _context.Chat.Find(filter).FirstOrDefaultAsync();
 
             return entity is null ? null : ToDomain(entity);
         }
 
-        public async Task<Guid> CreateNewChatAsync(Chat chat)
+        public async Task<Guid> CreatAsync(Chat chat)
         {
             var entity = new ChatEntity()
             {
                 Id = chat.Id,
-                UsersIds = chat.UsersIds
+                Name = chat.Name,
+                Users = chat.Users
             };
 
             await _context.Chat.InsertOneAsync(entity);
@@ -53,22 +54,21 @@ namespace GhostNetwork.Messages.MongoDb
             return entity.Id;
         }
 
-        public async Task AddNewUsersToChatAsync(Guid chatId, IEnumerable<Guid> users)
+        public async Task UpdateAsync(Chat chat)
         {
-            var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chatId);
-
-            var entity = await _context.Chat.Find(filter).FirstOrDefaultAsync();
+            var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chat.Id);
 
             var update = Builders<ChatEntity>.Update
-                .Set(p => p.UsersIds, users.Concat(entity.UsersIds));
+                .Set(p => p.Users, chat.Users)
+                .Set(p => p.Name, chat.Name);
 
             await _context.Chat.UpdateOneAsync(filter, update);
         }
 
-        public async Task DeleteChatAsync(Guid chatId)
+        public async Task DeleteAsync(Guid id)
         {
-            var messageFilter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
-            var chatFilter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chatId);
+            var messageFilter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, id);
+            var chatFilter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
             await _context.Message.DeleteManyAsync(messageFilter);
             await _context.Chat.DeleteOneAsync(chatFilter);
@@ -78,7 +78,8 @@ namespace GhostNetwork.Messages.MongoDb
         {
             return new Chat(
                 entity.Id,
-                entity.UsersIds);
+                entity.Name,
+                entity.Users);
         }
     }
 }

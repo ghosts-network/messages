@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Chats;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Filters;
@@ -13,12 +14,10 @@ namespace GhostNetwork.Messages.Api.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
-        private readonly IMessageService _messageService;
 
-        public ChatController(IChatService chatService, IMessageService messageService)
+        public ChatController(IChatService chatService)
         {
             _chatService = chatService;
-            _messageService = messageService;
         }
 
         /// <summary>
@@ -27,33 +26,39 @@ namespace GhostNetwork.Messages.Api.Controllers
         /// <param name="skip">Skip exist chats up to a specified position</param>
         /// <param name="take">Take exist chats up to a specified position</param>
         /// <param name="userId">Filters by user</param>
-        /// <response code="200">User chat ids</response>
+        /// <response code="200">Exist chats</response>
         [HttpGet("search/{userId:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [SwaggerResponseHeader(StatusCodes.Status200OK, "X-TotalCount", "Number", "Total number of user chats")]
-        public async Task<ActionResult> SearchExistChatsAsync(
+        public async Task<ActionResult<IEnumerable<Chat>>> SearchExistChatsAsync(
             [FromQuery, Range(0, int.MaxValue)] int skip,
             [FromQuery, Range(1, 100)] int take,
             [FromRoute] Guid userId)
         {
-            var (existChats, totalCount) = await _chatService.SearchChatsAsync(skip, take, userId);
+            var (existChats, totalCount) = await _chatService.SearchAsync(skip, take, userId);
 
             Response.Headers.Add("X-TotalCount", totalCount.ToString());
-            Response.Headers.Add("X-HasMore", (totalCount > skip + take).ToString());
 
             return Ok(existChats);
         }
 
         /// <summary>
-        /// Get chat info
+        /// Get chat by id
         /// </summary>
         /// <param name="chatId">Chat id</param>
-        /// <response code="200">Chat info</response>
+        /// <response code="200">Chat</response>
+        /// <response code="404">Chat not fount</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{chatId:guid}")]
-        public async Task<ActionResult<Guid>> GetExistChatAsync([FromRoute] Guid chatId)
+        public async Task<ActionResult<Guid>> GetByIdAsync([FromRoute] Guid chatId)
         {
-            var entity = await _chatService.GetChatByIdAsync(chatId);
+            var entity = await _chatService.GetByIdAsync(chatId);
+
+            if (entity is null)
+            {
+                return NotFound();
+            }
 
             return Ok(entity);
         }
@@ -61,134 +66,60 @@ namespace GhostNetwork.Messages.Api.Controllers
         /// <summary>
         /// Create new chat connection
         /// </summary>
-        /// <param name="users">List of user guids to add to the new chat</param>
+        /// <param name="model">Create chat model</param>
         /// <response code="200">Connection successfully created</response>
         /// <response code="400"></response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPost]
-        public async Task<ActionResult<Guid>> CreateNewChatAsync([FromBody] IEnumerable<Guid> users)
+        public async Task<ActionResult<Chat>> CreateNewChatAsync([FromBody] CreateChatModel model)
         {
-            var result = await _chatService.CreateNewChatAsync(users);
+            var (result, id) = await _chatService.CreateAsync(model.Name, model.Users);
 
-            return Ok(result);
+            if (!result.Successed)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Created(string.Empty, await _chatService.GetByIdAsync(id));
         }
 
         /// <summary>
-        /// Add new users to the chat
+        /// Update chat
         /// </summary>
         /// <param name="chatId">Chat id</param>
-        /// <param name="users">New users</param>
-        /// <response code="200">Users successfully added</response>
+        /// <param name="model">Update chat model</param>
+        /// <response code="200">Chat successfully updated</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPut("{chatId:guid}")]
-        public async Task<ActionResult> AddNewUsersToChatAsync([FromRoute] Guid chatId, [FromBody] IEnumerable<Guid> users)
+        public async Task<ActionResult> UpdateAsync([FromRoute] Guid chatId, [FromBody] UpdateChatModel model)
         {
-            await _chatService.AddNewUsersToChatAsync(chatId, users);
+            var result = await _chatService.UpdateAsync(chatId, model.Name, model.Users);
+
+            if (!result.Successed)
+            {
+                return BadRequest(result.Errors);
+            }
 
             return NoContent();
         }
 
         /// <summary>
-        /// Delete exist chat
+        /// Delete chat
         /// </summary>
         /// <param name="chatId">Chat id</param>
         /// <response code="204">Chat successfully deleted</response>
         [HttpDelete("{chatId:guid}")]
         public async Task<ActionResult> DeleteChatAsync([FromRoute] Guid chatId)
         {
-            await _chatService.DeleteChatAsync(chatId);
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Get chat history by chat id
-        /// </summary>
-        /// <param name="chatId">chat id</param>
-        /// <param name="skip">Skip exist messages up to a specified position</param>
-        /// <param name="take">Take exist messages up to a specified position</param>
-        /// <response code="200">Chat history</response>
-        [HttpGet("{chatId:guid}/history")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<Message>>> GetChatHistoryAsync(
-            [FromRoute] Guid chatId,
-            [FromQuery, Range(0, int.MaxValue)] int skip,
-            [FromQuery, Range(1, 100)] int take)
-        {
-            var (messages, totalCount) = await _messageService.GetChatHistoryAsync(skip, take, chatId);
-
-            Response.Headers.Add("X-TotalCount", totalCount.ToString());
-            Response.Headers.Add("X-HasMore", (totalCount > skip + take).ToString());
-
-            return Ok(messages);
-        }
-
-        /// <summary>
-        /// Send new message
-        /// </summary>
-        /// <param name="model">message model</param>
-        /// <response code="200"></response>
-        /// <response code="400"></response>
-        [HttpPost("message")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> SendMessageAsync([FromBody] CreateMessageModel model)
-        {
-            var (result, message) = await _messageService.SendMessageAsync(model.ChatId, model.SenderId, model.Message);
-
-            if (!result.Successed)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return Ok(message);
-        }
-
-        /// <summary>
-        /// Update message
-        /// </summary>
-        /// <param name="messageId">Message id</param>
-        /// <param name="model">Updated model</param>
-        /// <response code="204">Successfully updated</response>
-        /// <response code="400">Smt went wrong</response>
-        [HttpPut("message/{messageId:guid}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> UpdateMessageAsync(
-            [FromRoute] Guid messageId,
-            [FromBody] UpdateMessageModel model)
-        {
-            var result = await _messageService.UpdateMessageAsync(messageId, model.Message);
-
-            if (!result.Successed)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Delete message
-        /// </summary>
-        /// <param name="messageId">message id</param>
-        /// <response code="204">Message successfully deleted</response>
-        [HttpDelete("message/{messageId:guid}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> DeleteMessageAsync(
-            [FromRoute] Guid messageId)
-        {
-            await _messageService.DeleteMessageAsync(messageId);
+            await _chatService.DeleteAsync(chatId);
 
             return NoContent();
         }
     }
 
-    public record CreateMessageModel(Guid ChatId, Guid SenderId, string Message);
+    public record CreateChatModel(string Name, List<Guid> Users);
 
-    public record UpdateMessageModel(string Message);
+    public record UpdateChatModel(string Name, List<Guid> Users);
 }

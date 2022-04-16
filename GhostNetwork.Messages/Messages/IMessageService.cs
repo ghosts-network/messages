@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domain;
+using GhostNetwork.Messages.Messages;
 
 namespace GhostNetwork.Messages;
 
 public interface IMessageService
 {
-    Task<(IEnumerable<Message>, long)> GetChatHistoryAsync(int skip, int take, Guid chatId);
+    Task<(IEnumerable<Message>, long)> SearchAsync(int skip, int take, Guid chatId);
 
-    Task<(DomainResult, Message)> SendMessageAsync(Guid chatId, Guid senderId, string data);
+    Task<(DomainResult, Message)> SendAsync(Guid chatId, Guid senderId, string data);
 
-    Task DeleteMessageAsync(Guid id);
+    Task DeleteAsync(Guid id);
 
-    Task<DomainResult> UpdateMessageAsync(Guid id, string data);
+    Task<DomainResult> UpdateAsync(Guid id, string data);
 }
 
 public class MessageService : IMessageService
@@ -27,12 +28,12 @@ public class MessageService : IMessageService
         _validator = validator;
     }
 
-    public async Task<(IEnumerable<Message>, long)> GetChatHistoryAsync(int skip, int take, Guid chatId)
+    public async Task<(IEnumerable<Message>, long)> SearchAsync(int skip, int take, Guid chatId)
     {
-        return await _messageStorage.GetChatHistoryAsync(skip, take, chatId);
+        return await _messageStorage.SearchAsync(skip, take, chatId);
     }
 
-    public async Task<(DomainResult, Message)> SendMessageAsync(Guid chatId, Guid senderId, string data)
+    public async Task<(DomainResult, Message)> SendAsync(Guid chatId, Guid senderId, string data)
     {
         var newMessage = Message.NewMessage(chatId, senderId, data);
         var result = _validator.Validate(new MessageContext(data));
@@ -42,17 +43,17 @@ public class MessageService : IMessageService
             return (result, default);
         }
 
-        var message = await _messageStorage.SendMessageAsync(newMessage);
+        var message = await _messageStorage.SendAsync(newMessage);
 
         return (result, message);
     }
 
-    public async Task DeleteMessageAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
-        await _messageStorage.DeleteMessageAsync(id);
+        await _messageStorage.DeleteAsync(id);
     }
 
-    public async Task<DomainResult> UpdateMessageAsync(Guid id, string data)
+    public async Task<DomainResult> UpdateAsync(Guid id, string data)
     {
         var result = _validator.Validate(new MessageContext(data));
 
@@ -61,7 +62,7 @@ public class MessageService : IMessageService
             return result;
         }
 
-        await _messageStorage.UpdateMessageAsync(id, data);
+        await _messageStorage.UpdateAsync(id, data);
 
         return result;
     }

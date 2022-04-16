@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Domain;
+using GhostNetwork.Messages.Api.Controllers;
+using GhostNetwork.Messages.Chats;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -15,31 +18,25 @@ public class PostChatTests
     public async Task CreateNewChat_Ok()
     {
         //Setup
-        IEnumerable<Guid> users = new[]
-        {
-            Guid.NewGuid(),
-            Guid.NewGuid()
-        };
+        var model = new CreateChatModel(It.IsAny<string>(), new List<Guid> { Guid.NewGuid() });
 
-        var chat = GhostNetwork.Messages.Chat.NewChat(users);
+        var chat = Chats.Chat.NewChat(model.Name, model.Users);
 
         var serviceMock = new Mock<IChatService>();
-        var messageServiceMock = new Mock<IMessageService>();
-        
+
         serviceMock
-            .Setup(x => x.CreateNewChatAsync(users))
-            .ReturnsAsync(chat.Id);
+            .Setup(x => x.CreateAsync(chat.Name, chat.Users))
+            .ReturnsAsync((DomainResult.Success(), chat.Id));
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => messageServiceMock.Object);
         });
         
         //Act
-        var response = await client.PostAsync($"/Chat", users.AsJsonContent());
+        var response = await client.PostAsync($"/Chat", model.AsJsonContent());
         
         //Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
     }
 }

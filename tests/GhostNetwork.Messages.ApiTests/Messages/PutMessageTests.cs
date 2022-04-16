@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Domain;
 using GhostNetwork.Messages.Api.Controllers;
+using GhostNetwork.Messages.Chats;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -18,13 +19,13 @@ public class PutMessageTests
         //Setup
         var messageId = Guid.NewGuid();
 
-        var model = new UpdateMessageModel("Upd");
+        var model = new MessageController.UpdateMessageModel("Upd");
 
         var serviceMock = new Mock<IMessageService>();
         var chatServiceMock = new Mock<IChatService>();
         
         serviceMock
-            .Setup(x => x.UpdateMessageAsync(messageId, model.Message))
+            .Setup(x => x.UpdateAsync(messageId, model.Message))
             .ReturnsAsync(DomainResult.Success);
 
         var client = TestServerHelper.New(collection =>
@@ -34,7 +35,7 @@ public class PutMessageTests
         });
         
         //Act
-        var response = await client.PutAsync($"/Chat/message/{messageId}", model.AsJsonContent());
+        var response = await client.PutAsync($"/Message/{messageId}", model.AsJsonContent());
         
         //Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
@@ -46,13 +47,13 @@ public class PutMessageTests
         //Setup
         var messageId = Guid.NewGuid();
 
-        var model = new UpdateMessageModel("Upd");
+        var model = new MessageController.UpdateMessageModel("Upd");
 
         var serviceMock = new Mock<IMessageService>();
         var chatServiceMock = new Mock<IChatService>();
         
         serviceMock
-            .Setup(x => x.UpdateMessageAsync(messageId, model.Message))
+            .Setup(x => x.UpdateAsync(messageId, model.Message))
             .ReturnsAsync(DomainResult.Error(""));
 
         var client = TestServerHelper.New(collection =>
@@ -62,7 +63,7 @@ public class PutMessageTests
         });
         
         //Act
-        var response = await client.PutAsync($"/Chat/message/{messageId}", model.AsJsonContent());
+        var response = await client.PutAsync($"/Message/{messageId}", model.AsJsonContent());
         
         //Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);

@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using System.Threading.Tasks;
+using GhostNetwork.Messages.Messages;
 using NUnit.Framework;
 
 namespace GhostNetwork.Messages.UnitTests.Messages;

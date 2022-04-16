@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Chats;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -16,25 +16,17 @@ public class GetChatTests
     public async Task GetChatInfo_Ok()
     {
         //Setup
-        IEnumerable<Guid> users = new[]
-        {
-            Guid.NewGuid(),
-            Guid.Empty
-        };
-
-        var chat = GhostNetwork.Messages.Chat.NewChat(users);
+        var chat = Chats.Chat.NewChat("Test", new List<Guid> { Guid.NewGuid() });
 
         var serviceMock = new Mock<IChatService>();
-        var messageServiceMock = new Mock<IMessageService>();
-        
+
         serviceMock
-            .Setup(x => x.GetChatByIdAsync(chat.Id))
+            .Setup(x => x.GetByIdAsync(chat.Id))
             .ReturnsAsync(chat);
         
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => messageServiceMock.Object);
         });
         
         //Act
@@ -54,20 +46,18 @@ public class GetChatTests
         
         var users = new[]
         {
-            new GhostNetwork.Messages.Chat(default, default)
+            new Chats.Chat(default, default, default)
         };
 
         var serviceMock = new Mock<IChatService>();
-        var messageServiceMock = new Mock<IMessageService>();
-        
+
         serviceMock
-            .Setup(x => x.SearchChatsAsync(skip, take, userId))
-            .ReturnsAsync((users.Select(x => x.Id), users.Length));
+            .Setup(x => x.SearchAsync(skip, take, userId))
+            .ReturnsAsync((users, users.Length));
         
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => messageServiceMock.Object);
         });
         
         //Act

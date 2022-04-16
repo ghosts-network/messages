@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Messages;
 using MongoDB.Driver;
 
 namespace GhostNetwork.Messages.MongoDb;
@@ -15,7 +16,7 @@ public class MongoMessageStorage : IMessageStorage
         _context = context;
     }
 
-    public async Task<(IEnumerable<Message>, long)> GetChatHistoryAsync(int skip, int take, Guid chatId)
+    public async Task<(IEnumerable<Message>, long)> SearchAsync(int skip, int take, Guid chatId)
     {
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
 
@@ -30,7 +31,7 @@ public class MongoMessageStorage : IMessageStorage
         return (history.Select(ToDomain), totalCount);
     }
 
-    public async Task<Message> GetMessageByIdAsync(Guid id)
+    public async Task<Message> GetByIdAsync(Guid id)
     {
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, id);
 
@@ -39,7 +40,7 @@ public class MongoMessageStorage : IMessageStorage
         return entity is null ? null : ToDomain(entity);
     }
 
-    public async Task<Message> SendMessageAsync(Message message)
+    public async Task<Message> SendAsync(Message message)
     {
         var entity = new MessageEntity()
         {
@@ -54,14 +55,14 @@ public class MongoMessageStorage : IMessageStorage
         return ToDomain(entity);
     }
 
-    public async Task DeleteMessageAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id);
 
         await _context.Message.DeleteOneAsync(filter);
     }
 
-    public async Task UpdateMessageAsync(Guid id, string message)
+    public async Task UpdateAsync(Guid id, string message)
     {
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id);
 

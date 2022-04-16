@@ -11,7 +11,10 @@ namespace GhostNetwork.Messages.MongoDb
         [BsonId]
         public Guid Id { get; set; }
 
-        [BsonElement("usersIds")]
-        public IEnumerable<Guid> UsersIds { get; set; }
+        [BsonElement("name")]
+        public string Name { get; set; }
+
+        [BsonElement("users")]
+        public List<Guid> Users { get; set; }
     }
 }

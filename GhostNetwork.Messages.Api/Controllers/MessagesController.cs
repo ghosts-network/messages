@@ -9,24 +9,24 @@ using Swashbuckle.AspNetCore.Filters;
 namespace GhostNetwork.Messages.Api.Controllers;
 
 [ApiController]
-[Route("[controller]")]
-public class MessageController : ControllerBase
+[Route("chats/{chatId:guid}/messages")]
+public class MessagesController : ControllerBase
 {
-    private readonly IMessageService _messageService;
+    private readonly IMessageService messageService;
 
-    public MessageController(IMessageService messageService)
+    public MessagesController(IMessageService messageService)
     {
-        _messageService = messageService;
+        this.messageService = messageService;
     }
 
     /// <summary>
     /// Get messages by chat id
     /// </summary>
-    /// <param name="chatId">chat id</param>
+    /// <param name="chatId">Chat identifier</param>
     /// <param name="skip">Skip exist messages up to a specified position</param>
     /// <param name="take">Take exist messages up to a specified position</param>
     /// <response code="200">Chat messages</response>
-    [HttpGet("{chatId:guid}")]
+    [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [SwaggerResponseHeader(StatusCodes.Status200OK, "X-TotalCount", "Number", "Total number of messages")]
     public async Task<ActionResult<IEnumerable<Message>>> SearchAsync(
@@ -34,7 +34,7 @@ public class MessageController : ControllerBase
         [FromQuery, Range(0, int.MaxValue)] int skip,
         [FromQuery, Range(1, 100)] int take)
     {
-        var (messages, totalCount) = await _messageService.SearchAsync(skip, take, chatId);
+        var (messages, totalCount) = await messageService.SearchAsync(skip, take, chatId);
 
         Response.Headers.Add("X-TotalCount", totalCount.ToString());
 
@@ -44,15 +44,18 @@ public class MessageController : ControllerBase
     /// <summary>
     /// Send new message
     /// </summary>
+    /// <param name="chatId">Chat identifier</param>
     /// <param name="model">message model</param>
     /// <response code="200">New message</response>
     /// <response code="400">Problem details</response>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> SendMessageAsync([FromBody] CreateMessageModel model)
+    public async Task<ActionResult> SendAsync(
+        [FromRoute] Guid chatId,
+        [FromBody] CreateMessageModel model)
     {
-        var (result, message) = await _messageService.SendAsync(model.ChatId, model.SenderId, model.Message);
+        var (result, message) = await messageService.SendAsync(chatId, model.SenderId, model.Message);
 
         if (!result.Successed)
         {
@@ -72,11 +75,11 @@ public class MessageController : ControllerBase
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UpdateMessageAsync(
+    public async Task<ActionResult> UpdateAsync(
         [FromRoute] Guid id,
         [FromBody] UpdateMessageModel model)
     {
-        var result = await _messageService.UpdateAsync(id, model.Message);
+        var result = await messageService.UpdateAsync(id, model.Message);
 
         if (!result.Successed)
         {
@@ -89,20 +92,19 @@ public class MessageController : ControllerBase
     /// <summary>
     /// Delete message
     /// </summary>
-    /// <param name="id">Message id</param>
+    /// <param name="id">Message identifier</param>
     /// <response code="204">Message successfully deleted</response>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> DeleteMessageAsync(
-        [FromRoute] Guid id)
+    public async Task<ActionResult> DeleteAsync([FromRoute] Guid id)
     {
-        await _messageService.DeleteAsync(id);
+        await messageService.DeleteAsync(id);
 
         return NoContent();
     }
-
-    public record CreateMessageModel(Guid ChatId, Guid SenderId, string Message);
-
-    public record UpdateMessageModel(string Message);
 }
+
+public record CreateMessageModel(Guid SenderId, string Message);
+
+public record UpdateMessageModel(string Message);

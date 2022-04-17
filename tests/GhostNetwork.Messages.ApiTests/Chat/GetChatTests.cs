@@ -30,7 +30,7 @@ public class GetChatTests
         });
         
         //Act
-        var response = await client.GetAsync($"/Chat/{chat.Id}");
+        var response = await client.GetAsync($"/chats/{chat.Id}");
         
         //Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
@@ -61,7 +61,7 @@ public class GetChatTests
         });
         
         //Act
-        var response = await client.GetAsync($"/Chat/search/{userId}");
+        var response = await client.GetAsync($"/chats/search/{userId}");
         
         //Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);

@@ -34,7 +34,7 @@ public class PostChatTests
         });
         
         //Act
-        var response = await client.PostAsync($"/Chat", model.AsJsonContent());
+        var response = await client.PostAsync("/chats", model.AsJsonContent());
         
         //Assert
         Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);

@@ -34,7 +34,7 @@ public class PutChatTests
         });
         
         //Act
-        var response = await client.PutAsync($"/Chat/{chatId}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chatId}", model.AsJsonContent());
         
         //Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
@@ -60,7 +60,7 @@ public class PutChatTests
         });
         
         //Act
-        var response = await client.PutAsync($"/Chat/{chatId}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chatId}", model.AsJsonContent());
         
         //Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);

@@ -12,7 +12,7 @@ namespace GhostNetwork.Messages.ApiTests.Messages;
 public class GetMessageTests
 {
     [Test]
-    public async Task GetChatHistory()
+    public async Task GetChatMessages()
     {
         //Setup
         var chatId = Guid.NewGuid();
@@ -20,7 +20,7 @@ public class GetMessageTests
         const int take = 1;
 
         var message = new Message(Guid.NewGuid(), chatId, Guid.NewGuid(), DateTimeOffset.Now, false, "Test");
-        var messages = new List<Message>()
+        var messages = new List<Message>
         {
             message
         };
@@ -37,7 +37,7 @@ public class GetMessageTests
         });
         
         //Act
-        var response = await client.GetAsync($"/Message/{chatId}");
+        var response = await client.GetAsync($"/chats/{chatId}/messages");
         
         //Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);

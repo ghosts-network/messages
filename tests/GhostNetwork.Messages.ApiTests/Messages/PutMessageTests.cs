@@ -17,9 +17,10 @@ public class PutMessageTests
     public async Task UpdateMessage_NoContent()
     {
         //Setup
+        var chatId = Guid.NewGuid();
         var messageId = Guid.NewGuid();
 
-        var model = new MessageController.UpdateMessageModel("Upd");
+        var model = new UpdateMessageModel("Upd");
 
         var serviceMock = new Mock<IMessageService>();
         var chatServiceMock = new Mock<IChatService>();
@@ -35,7 +36,7 @@ public class PutMessageTests
         });
         
         //Act
-        var response = await client.PutAsync($"/Message/{messageId}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chatId}/messages/{messageId}", model.AsJsonContent());
         
         //Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
@@ -45,9 +46,10 @@ public class PutMessageTests
     public async Task UpdateMessage_BadRequest()
     {
         //Setup
+        var chatId = Guid.NewGuid();
         var messageId = Guid.NewGuid();
 
-        var model = new MessageController.UpdateMessageModel("Upd");
+        var model = new UpdateMessageModel("Upd");
 
         var serviceMock = new Mock<IMessageService>();
         var chatServiceMock = new Mock<IChatService>();
@@ -63,7 +65,7 @@ public class PutMessageTests
         });
         
         //Act
-        var response = await client.PutAsync($"/Message/{messageId}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chatId}/messages/{messageId}", model.AsJsonContent());
         
         //Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);

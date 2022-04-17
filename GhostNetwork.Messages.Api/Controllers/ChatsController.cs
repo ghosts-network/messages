@@ -13,9 +13,9 @@ namespace GhostNetwork.Messages.Api.Controllers;
 [Route("chats")]
 public class ChatsController : ControllerBase
 {
-    private readonly IChatService chatService;
+    private readonly IChatsService chatService;
 
-    public ChatsController(IChatService chatService)
+    public ChatsController(IChatsService chatService)
     {
         this.chatService = chatService;
     }

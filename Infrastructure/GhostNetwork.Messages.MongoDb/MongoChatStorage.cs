@@ -7,22 +7,22 @@ using MongoDB.Driver;
 
 namespace GhostNetwork.Messages.MongoDb
 {
-    public class MongoChatStorage : IChatStorage
+    public class MongoChatStorage : IChatsStorage
     {
-        private readonly MongoDbContext _context;
+        private readonly MongoDbContext context;
 
         public MongoChatStorage(MongoDbContext context)
         {
-            _context = context;
+            this.context = context;
         }
 
         public async Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId)
         {
             var filter = Builders<ChatEntity>.Filter.AnyEq(p => p.Users, userId);
 
-            var totalCount = await _context.Chat.Find(filter).CountDocumentsAsync();
+            var totalCount = await context.Chat.Find(filter).CountDocumentsAsync();
 
-            var chats = await _context.Chat
+            var chats = await context.Chat
                 .Find(filter)
                 .Skip(skip)
                 .Limit(take)
@@ -35,7 +35,7 @@ namespace GhostNetwork.Messages.MongoDb
         {
             var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
-            var entity = await _context.Chat.Find(filter).FirstOrDefaultAsync();
+            var entity = await context.Chat.Find(filter).FirstOrDefaultAsync();
 
             return entity is null ? null : ToDomain(entity);
         }
@@ -49,7 +49,7 @@ namespace GhostNetwork.Messages.MongoDb
                 Users = chat.Users
             };
 
-            await _context.Chat.InsertOneAsync(entity);
+            await context.Chat.InsertOneAsync(entity);
 
             return entity.Id;
         }
@@ -62,7 +62,7 @@ namespace GhostNetwork.Messages.MongoDb
                 .Set(p => p.Users, chat.Users)
                 .Set(p => p.Name, chat.Name);
 
-            await _context.Chat.UpdateOneAsync(filter, update);
+            await context.Chat.UpdateOneAsync(filter, update);
         }
 
         public async Task DeleteAsync(Guid id)
@@ -70,8 +70,8 @@ namespace GhostNetwork.Messages.MongoDb
             var messageFilter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, id);
             var chatFilter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
-            await _context.Message.DeleteManyAsync(messageFilter);
-            await _context.Chat.DeleteOneAsync(chatFilter);
+            await context.Message.DeleteManyAsync(messageFilter);
+            await context.Chat.DeleteOneAsync(chatFilter);
         }
 
         private static Chat ToDomain(ChatEntity entity)

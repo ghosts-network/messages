@@ -51,12 +51,12 @@ namespace GhostNetwork.Messages.Api
                 return new MongoDbContext(client.GetDatabase(mongoUrl.DatabaseName ?? DefaultDbName));
             });
 
-            services.AddScoped<IChatStorage, MongoChatStorage>();
-            services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<IChatsStorage, MongoChatStorage>();
+            services.AddScoped<IChatsService, ChatsService>();
             services.AddScoped<IValidator<ChatContext>, ChatValidator>();
 
-            services.AddScoped<IMessageStorage, MongoMessageStorage>();
-            services.AddScoped<IMessageService, MessageService>();
+            services.AddScoped<IMessagesStorage, MongoMessageStorage>();
+            services.AddScoped<IMessagesService, MessagesService>();
             services.AddScoped<IValidator<MessageContext>, MessageValidator>();
         }
 

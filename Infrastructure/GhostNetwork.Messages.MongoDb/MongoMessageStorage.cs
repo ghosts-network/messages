@@ -7,22 +7,22 @@ using MongoDB.Driver;
 
 namespace GhostNetwork.Messages.MongoDb;
 
-public class MongoMessageStorage : IMessageStorage
+public class MongoMessageStorage : IMessagesStorage
 {
-    private readonly MongoDbContext _context;
+    private readonly MongoDbContext context;
 
     public MongoMessageStorage(MongoDbContext context)
     {
-        _context = context;
+        this.context = context;
     }
 
     public async Task<(IEnumerable<Message>, long)> SearchAsync(int skip, int take, Guid chatId)
     {
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
 
-        var totalCount = await _context.Message.Find(filter).CountDocumentsAsync();
+        var totalCount = await context.Message.Find(filter).CountDocumentsAsync();
 
-        var history = await _context.Message
+        var history = await context.Message
             .Find(filter)
             .Skip(skip)
             .Limit(take)
@@ -35,7 +35,7 @@ public class MongoMessageStorage : IMessageStorage
     {
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, id);
 
-        var entity = await _context.Message.Find(filter).FirstOrDefaultAsync();
+        var entity = await context.Message.Find(filter).FirstOrDefaultAsync();
 
         return entity is null ? null : ToDomain(entity);
     }
@@ -50,7 +50,7 @@ public class MongoMessageStorage : IMessageStorage
             Data = message.Data
         };
 
-        await _context.Message.InsertOneAsync(entity);
+        await context.Message.InsertOneAsync(entity);
 
         return ToDomain(entity);
     }
@@ -59,7 +59,7 @@ public class MongoMessageStorage : IMessageStorage
     {
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id);
 
-        await _context.Message.DeleteOneAsync(filter);
+        await context.Message.DeleteOneAsync(filter);
     }
 
     public async Task UpdateAsync(Guid id, string message)
@@ -71,7 +71,7 @@ public class MongoMessageStorage : IMessageStorage
             .Set(p => p.SentOn, DateTimeOffset.Now)
             .Set(p => p.IsUpdated, true);
 
-        await _context.Message.UpdateOneAsync(filter, update);
+        await context.Message.UpdateOneAsync(filter, update);
     }
 
     private static Message ToDomain(MessageEntity entity)

@@ -17,12 +17,12 @@ public class PostChatTests
     [Test]
     public async Task CreateNewChat_Ok()
     {
-        //Setup
+        // Arrange
         var model = new CreateChatModel(It.IsAny<string>(), new List<Guid> { Guid.NewGuid() });
 
         var chat = Chats.Chat.NewChat(model.Name, model.Users);
 
-        var serviceMock = new Mock<IChatService>();
+        var serviceMock = new Mock<IChatsService>();
 
         serviceMock
             .Setup(x => x.CreateAsync(chat.Name, chat.Users))
@@ -32,11 +32,11 @@ public class PostChatTests
         {
             collection.AddScoped(_ => serviceMock.Object);
         });
-        
-        //Act
+
+        // Act
         var response = await client.PostAsync("/chats", model.AsJsonContent());
-        
-        //Assert
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
     }
 }

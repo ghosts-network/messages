@@ -6,7 +6,7 @@ using GhostNetwork.Messages.Messages;
 
 namespace GhostNetwork.Messages;
 
-public interface IMessageService
+public interface IMessagesService
 {
     Task<(IEnumerable<Message>, long)> SearchAsync(int skip, int take, Guid chatId);
 
@@ -17,52 +17,52 @@ public interface IMessageService
     Task<DomainResult> UpdateAsync(Guid id, string data);
 }
 
-public class MessageService : IMessageService
+public class MessagesService : IMessagesService
 {
-    private readonly IMessageStorage _messageStorage;
-    private readonly IValidator<MessageContext> _validator;
+    private readonly IMessagesStorage messageStorage;
+    private readonly IValidator<MessageContext> validator;
 
-    public MessageService(IMessageStorage messageStorage, IValidator<MessageContext> validator)
+    public MessagesService(IMessagesStorage messageStorage, IValidator<MessageContext> validator)
     {
-        _messageStorage = messageStorage;
-        _validator = validator;
+        this.messageStorage = messageStorage;
+        this.validator = validator;
     }
 
     public async Task<(IEnumerable<Message>, long)> SearchAsync(int skip, int take, Guid chatId)
     {
-        return await _messageStorage.SearchAsync(skip, take, chatId);
+        return await messageStorage.SearchAsync(skip, take, chatId);
     }
 
     public async Task<(DomainResult, Message)> SendAsync(Guid chatId, Guid senderId, string data)
     {
         var newMessage = Message.NewMessage(chatId, senderId, data);
-        var result = _validator.Validate(new MessageContext(data));
+        var result = validator.Validate(new MessageContext(data));
 
         if (!result.Successed)
         {
             return (result, default);
         }
 
-        var message = await _messageStorage.SendAsync(newMessage);
+        var message = await messageStorage.SendAsync(newMessage);
 
         return (result, message);
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        await _messageStorage.DeleteAsync(id);
+        await messageStorage.DeleteAsync(id);
     }
 
     public async Task<DomainResult> UpdateAsync(Guid id, string data)
     {
-        var result = _validator.Validate(new MessageContext(data));
+        var result = validator.Validate(new MessageContext(data));
 
         if (!result.Successed)
         {
             return result;
         }
 
-        await _messageStorage.UpdateAsync(id, data);
+        await messageStorage.UpdateAsync(id, data);
 
         return result;
     }

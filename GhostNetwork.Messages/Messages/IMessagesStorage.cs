@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GhostNetwork.Messages.Messages;
 
-public interface IMessageStorage
+public interface IMessagesStorage
 {
     Task<(IEnumerable<Message>, long)> SearchAsync(int skip, int take, Guid chatId);
 

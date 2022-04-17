@@ -16,15 +16,15 @@ public class PutMessageTests
     [Test]
     public async Task UpdateMessage_NoContent()
     {
-        //Setup
+        // Arrange
         var chatId = Guid.NewGuid();
         var messageId = Guid.NewGuid();
 
         var model = new UpdateMessageModel("Upd");
 
-        var serviceMock = new Mock<IMessageService>();
-        var chatServiceMock = new Mock<IChatService>();
-        
+        var serviceMock = new Mock<IMessagesService>();
+        var chatServiceMock = new Mock<IChatsService>();
+
         serviceMock
             .Setup(x => x.UpdateAsync(messageId, model.Message))
             .ReturnsAsync(DomainResult.Success);
@@ -34,40 +34,40 @@ public class PutMessageTests
             collection.AddScoped(_ => serviceMock.Object);
             collection.AddScoped(_ => chatServiceMock.Object);
         });
-        
-        //Act
+
+        // Act
         var response = await client.PutAsync($"/chats/{chatId}/messages/{messageId}", model.AsJsonContent());
-        
-        //Assert
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
-    
+
     [Test]
     public async Task UpdateMessage_BadRequest()
     {
-        //Setup
+        // Arrange
         var chatId = Guid.NewGuid();
         var messageId = Guid.NewGuid();
 
         var model = new UpdateMessageModel("Upd");
 
-        var serviceMock = new Mock<IMessageService>();
-        var chatServiceMock = new Mock<IChatService>();
-        
+        var serviceMock = new Mock<IMessagesService>();
+        var chatServiceMock = new Mock<IChatsService>();
+
         serviceMock
             .Setup(x => x.UpdateAsync(messageId, model.Message))
-            .ReturnsAsync(DomainResult.Error(""));
+            .ReturnsAsync(DomainResult.Error(string.Empty));
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
             collection.AddScoped(_ => chatServiceMock.Object);
         });
-        
-        //Act
+
+        // Act
         var response = await client.PutAsync($"/chats/{chatId}/messages/{messageId}", model.AsJsonContent());
-        
-        //Assert
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

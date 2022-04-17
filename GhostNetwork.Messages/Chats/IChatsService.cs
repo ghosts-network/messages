@@ -5,7 +5,7 @@ using Domain;
 
 namespace GhostNetwork.Messages.Chats
 {
-    public interface IChatService
+    public interface IChatsService
     {
         Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId);
 
@@ -18,30 +18,30 @@ namespace GhostNetwork.Messages.Chats
         Task DeleteAsync(Guid id);
     }
 
-    public class ChatService : IChatService
+    public class ChatsService : IChatsService
     {
-        private readonly IChatStorage _chatStorage;
-        private readonly IValidator<ChatContext> _validator;
+        private readonly IChatsStorage chatStorage;
+        private readonly IValidator<ChatContext> validator;
 
-        public ChatService(IChatStorage chatStorage, IValidator<ChatContext> validator)
+        public ChatsService(IChatsStorage chatStorage, IValidator<ChatContext> validator)
         {
-            _chatStorage = chatStorage;
-            _validator = validator;
+            this.chatStorage = chatStorage;
+            this.validator = validator;
         }
 
         public async Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId)
         {
-            return await _chatStorage.SearchAsync(skip, take, userId);
+            return await chatStorage.SearchAsync(skip, take, userId);
         }
 
         public async Task<Chat> GetByIdAsync(Guid id)
         {
-            return await _chatStorage.GetByIdAsync(id);
+            return await chatStorage.GetByIdAsync(id);
         }
 
         public async Task<(DomainResult, Guid)> CreateAsync(string name, List<Guid> users)
         {
-            var result = _validator.Validate(new ChatContext(name, users));
+            var result = validator.Validate(new ChatContext(name, users));
 
             if (!result.Successed)
             {
@@ -50,31 +50,31 @@ namespace GhostNetwork.Messages.Chats
 
             var chat = Chat.NewChat(name, users);
 
-            var id = await _chatStorage.CreatAsync(chat);
+            var id = await chatStorage.CreatAsync(chat);
 
             return (result, id);
         }
 
         public async Task<DomainResult> UpdateAsync(Guid id, string name, List<Guid> users)
         {
-            var result = _validator.Validate(new ChatContext(name, users));
+            var result = validator.Validate(new ChatContext(name, users));
 
             if (!result.Successed)
             {
                 return result;
             }
 
-            var chat = await _chatStorage.GetByIdAsync(id);
+            var chat = await chatStorage.GetByIdAsync(id);
             chat.Update(name, users);
 
-            await _chatStorage.UpdateAsync(chat);
+            await chatStorage.UpdateAsync(chat);
 
             return DomainResult.Success();
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            await _chatStorage.DeleteAsync(id);
+            await chatStorage.DeleteAsync(id);
         }
     }
 }

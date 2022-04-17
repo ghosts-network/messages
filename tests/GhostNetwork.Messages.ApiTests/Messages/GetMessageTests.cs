@@ -14,7 +14,7 @@ public class GetMessageTests
     [Test]
     public async Task GetChatMessages()
     {
-        //Setup
+        // Arrange
         var chatId = Guid.NewGuid();
         const int skip = 0;
         const int take = 1;
@@ -25,7 +25,7 @@ public class GetMessageTests
             message
         };
 
-        var serviceMock = new Mock<IMessageService>();
+        var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
             .Setup(x => x.SearchAsync(skip, take, chatId))
@@ -35,11 +35,11 @@ public class GetMessageTests
         {
             collection.AddScoped(_ => serviceMock.Object);
         });
-        
-        //Act
+
+        // Act
         var response = await client.GetAsync($"/chats/{chatId}/messages");
-        
-        //Assert
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
     }
 }

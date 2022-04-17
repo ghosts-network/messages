@@ -12,9 +12,9 @@ namespace GhostNetwork.Messages.Api.Controllers;
 [Route("chats/{chatId:guid}/messages")]
 public class MessagesController : ControllerBase
 {
-    private readonly IMessageService messageService;
+    private readonly IMessagesService messageService;
 
-    public MessagesController(IMessageService messageService)
+    public MessagesController(IMessagesService messageService)
     {
         this.messageService = messageService;
     }

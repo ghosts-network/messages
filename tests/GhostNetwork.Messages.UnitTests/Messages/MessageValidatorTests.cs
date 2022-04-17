@@ -9,26 +9,26 @@ public class MessageValidatorTests
     [Test]
     public void Message_Null_Argument()
     {
-        //Setup
+        // Arrange
         var validator = new MessageValidator();
-        
-        //Act
+
+        // Act
         var result = validator.Validate(new MessageContext(null));
-        
-        //Assert
+
+        // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
     }
 
     [Test]
     public void Message_Correct_Data()
     {
-        //Setup
+        // Arrange
         var validator = new MessageValidator();
-        
-        //Act
+
+        // Act
         var result = validator.Validate(new MessageContext("Message"));
-        
-        //Assert
+
+        // Assert
         Assert.IsTrue(result.Successed);
     }
 }

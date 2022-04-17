@@ -11,39 +11,39 @@ public class ChatValidatorTests
     [Test]
     public void Name_Null_Argument()
     {
-        //Setup
+        // Arrange
         var validator = new ChatValidator();
-        
-        //Act
-        var result = validator.Validate(new ChatContext(null, new List<Guid>() {Guid.NewGuid()}));
-        
-        //Assert
+
+        // Act
+        var result = validator.Validate(new ChatContext(null, new List<Guid>() { Guid.NewGuid() }));
+
+        // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
     }
 
     [Test]
     public void Chat_Correct_Data()
     {
-        //Setup
+        // Arrange
         var validator = new ChatValidator();
-        
-        //Act
-        var result = validator.Validate(new ChatContext("Test", new List<Guid>(){Guid.NewGuid()}));
-        
-        //Assert
+
+        // Act
+        var result = validator.Validate(new ChatContext("Test", new List<Guid> { Guid.NewGuid() }));
+
+        // Assert
         Assert.IsTrue(result.Successed);
     }
-    
+
     [Test]
     public void Chat_Users_Zero_Argument()
     {
-        //Setup
+        // Arrange
         var validator = new ChatValidator();
-        
-        //Act
+
+        // Act
         var result = validator.Validate(new ChatContext("Test", new List<Guid>()));
-        
-        //Assert
+
+        // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
     }
 }

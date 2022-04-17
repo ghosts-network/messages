@@ -4,7 +4,8 @@
     "GhostNetwork.Messages.Api": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://localhost:5000/swagger",
+      "applicationUrl": "http://localhost:5252",
+      "launchUrl": "http://localhost:5252/swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "MONGO_CONNECTION": "mongodb://127.0.0.1:27017/gmessages"

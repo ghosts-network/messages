@@ -4,17 +4,17 @@ namespace GhostNetwork.Messages.MongoDb
 {
     public class MongoDbContext
     {
-        private readonly IMongoDatabase _database;
+        private readonly IMongoDatabase database;
 
         public MongoDbContext(IMongoDatabase database)
         {
-            _database = database;
+            this.database = database;
         }
 
         public IMongoCollection<ChatEntity> Chat =>
-            _database.GetCollection<ChatEntity>("chat");
+            database.GetCollection<ChatEntity>("chat");
 
         public IMongoCollection<MessageEntity> Message =>
-            _database.GetCollection<MessageEntity>("message");
+            database.GetCollection<MessageEntity>("message");
     }
 }

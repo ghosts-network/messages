@@ -13,11 +13,11 @@ public class DeleteMessageTests
     [Test]
     public async Task DeleteMessage_NoContent()
     {
-        //Setup
+        // Arrange
         var chatId = Guid.NewGuid();
         var messageId = Guid.NewGuid();
-        
-        var serviceMock = new Mock<IMessageService>();
+
+        var serviceMock = new Mock<IMessagesService>();
         serviceMock
             .Setup(x => x.DeleteAsync(messageId));
 
@@ -25,11 +25,11 @@ public class DeleteMessageTests
         {
             collection.AddScoped(_ => serviceMock.Object);
         });
-        
-        //Act
+
+        // Act
         var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
-        
-        //Assert
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
 }

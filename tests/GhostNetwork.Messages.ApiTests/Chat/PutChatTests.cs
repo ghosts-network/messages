@@ -17,12 +17,12 @@ public class PutChatTests
     [Test]
     public async Task Update_NoContent()
     {
-        //Setup
+        // Arrange
         var chatId = Guid.NewGuid();
 
-        var model = new UpdateChatModel(It.IsAny<string>(), new List<Guid> {Guid.NewGuid()});
+        var model = new UpdateChatModel(It.IsAny<string>(), new List<Guid> { Guid.NewGuid() });
 
-        var serviceMock = new Mock<IChatService>();
+        var serviceMock = new Mock<IChatsService>();
 
         serviceMock
             .Setup(x => x.UpdateAsync(chatId, model.Name, model.Users))
@@ -32,23 +32,23 @@ public class PutChatTests
         {
             collection.AddScoped(_ => serviceMock.Object);
         });
-        
-        //Act
+
+        // Act
         var response = await client.PutAsync($"/chats/{chatId}", model.AsJsonContent());
-        
-        //Assert
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
-    
+
     [Test]
     public async Task Update_BadRequest()
     {
-        //Setup
+        // Arrange
         var chatId = Guid.NewGuid();
 
-        var model = new UpdateChatModel(It.IsAny<string>(), new List<Guid> {Guid.NewGuid()});
+        var model = new UpdateChatModel(It.IsAny<string>(), new List<Guid> { Guid.NewGuid() });
 
-        var serviceMock = new Mock<IChatService>();
+        var serviceMock = new Mock<IChatsService>();
 
         serviceMock
             .Setup(x => x.UpdateAsync(chatId, model.Name, model.Users))
@@ -58,11 +58,11 @@ public class PutChatTests
         {
             collection.AddScoped(_ => serviceMock.Object);
         });
-        
-        //Act
+
+        // Act
         var response = await client.PutAsync($"/chats/{chatId}", model.AsJsonContent());
-        
-        //Assert
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Messages;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace GhostNetwork.Messages.MongoDb;
@@ -16,28 +17,51 @@ public class MongoMessageStorage : IMessagesStorage
         this.context = context;
     }
 
-    public async Task<(IEnumerable<Message>, long)> SearchAsync(int skip, int take, Guid chatId)
+    public async Task<(IEnumerable<Message>, long, string)> SearchAsync(string lastMessageId, int take, Guid chatId)
     {
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
+        var sorting = Builders<MessageEntity>.Sort.Descending(p => p.SentOn);
+
+        if (lastMessageId is not null)
+        {
+            filter &= Builders<MessageEntity>.Filter.Lt(x => x.Id, ObjectId.Parse(lastMessageId));
+        }
 
         var totalCount = await context.Message.Find(filter).CountDocumentsAsync();
 
-        var history = await context.Message
+        var messages = await context.Message
+
             .Find(filter)
-            .Skip(skip)
+            .Sort(sorting)
             .Limit(take)
             .ToListAsync();
 
-        return (history.Select(ToDomain), totalCount);
+        var lastMessage = messages.Any() ? messages[^1].Id.ToString() : null;
+
+        return (messages.Select(ToDomain), totalCount, lastMessage);
     }
 
-    public async Task<Message> GetByIdAsync(Guid id)
+    public async Task<Message> GetByIdAsync(string id)
     {
-        var filter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, id);
+        if (!ObjectId.TryParse(id, out var oId))
+        {
+            return null;
+        }
+
+        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, oId);
 
         var entity = await context.Message.Find(filter).FirstOrDefaultAsync();
 
         return entity is null ? null : ToDomain(entity);
+    }
+
+    public async Task<bool> ParticipantsCheckAsync(Guid userId)
+    {
+        var filter = Builders<ChatEntity>.Filter.AnyEq(p => p.Users, userId);
+
+        var entity = await context.Chat.Find(filter).FirstOrDefaultAsync();
+
+        return entity is not null;
     }
 
     public async Task<Message> SendAsync(Message message)
@@ -55,21 +79,31 @@ public class MongoMessageStorage : IMessagesStorage
         return ToDomain(entity);
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(string id)
     {
-        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id);
+        if (!ObjectId.TryParse(id, out var oId))
+        {
+            return;
+        }
+
+        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, oId);
 
         await context.Message.DeleteOneAsync(filter);
     }
 
-    public async Task UpdateAsync(Guid id, string message)
+    public async Task UpdateAsync(string id, string message)
     {
-        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id);
+        if (!ObjectId.TryParse(id, out var oId))
+        {
+            return;
+        }
+
+        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, oId);
 
         var update = Builders<MessageEntity>.Update
-            .Set(p => p.Data, message)
             .Set(p => p.SentOn, DateTimeOffset.Now)
-            .Set(p => p.IsUpdated, true);
+            .Set(p => p.IsUpdated, true)
+            .Set(p => p.Data, message);
 
         await context.Message.UpdateOneAsync(filter, update);
     }
@@ -77,7 +111,7 @@ public class MongoMessageStorage : IMessagesStorage
     private static Message ToDomain(MessageEntity entity)
     {
         return new Message(
-            entity.Id,
+            entity.Id.ToString(),
             entity.ChatId,
             entity.SenderId,
             entity.SentOn,

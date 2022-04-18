@@ -6,8 +6,7 @@ namespace GhostNetwork.Messages.MongoDb;
 
 public class MessageEntity
 {
-    [BsonId]
-    public Guid Id { get; set; }
+    public ObjectId Id { get; set; }
 
     [BsonElement("chatId")]
     public Guid ChatId { get; set; }

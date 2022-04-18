@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -15,9 +16,10 @@ public class DeleteMessageTests
     {
         // Arrange
         var chatId = Guid.NewGuid();
-        var messageId = Guid.NewGuid();
+        var messageId = Guid.NewGuid().ToString();
 
         var serviceMock = new Mock<IMessagesService>();
+
         serviceMock
             .Setup(x => x.DeleteAsync(messageId));
 

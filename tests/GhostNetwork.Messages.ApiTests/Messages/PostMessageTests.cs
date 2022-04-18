@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Domain;
 using GhostNetwork.Messages.Api.Controllers;
+using GhostNetwork.Messages.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -19,7 +20,7 @@ public class PostMessageTests
         var chatId = Guid.NewGuid();
         var model = new CreateMessageModel(Guid.NewGuid(), "Test");
 
-        var message = new Message(Guid.NewGuid(), Guid.NewGuid(), model.SenderId, DateTimeOffset.Now, false, model.Message);
+        var message = new Message(Guid.NewGuid().ToString(), chatId, model.SenderId, DateTimeOffset.Now, false, model.Message);
 
         var serviceMock = new Mock<IMessagesService>();
 

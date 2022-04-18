@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Api.Helpers;
+using GhostNetwork.Messages.Messages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Filters;
@@ -23,20 +25,22 @@ public class MessagesController : ControllerBase
     /// Get messages by chat id
     /// </summary>
     /// <param name="chatId">Chat identifier</param>
-    /// <param name="skip">Skip exist messages up to a specified position</param>
+    /// <param name="lastMessageId">Last message id for cursor pagination</param>
     /// <param name="take">Take exist messages up to a specified position</param>
     /// <response code="200">Chat messages</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [SwaggerResponseHeader(StatusCodes.Status200OK, "X-TotalCount", "Number", "Total number of messages")]
+    [SwaggerResponseHeader(StatusCodes.Status200OK, "X-LastMessageId", "String", "Last message id for cursor pagination")]
     public async Task<ActionResult<IEnumerable<Message>>> SearchAsync(
         [FromRoute] Guid chatId,
-        [FromQuery, Range(0, int.MaxValue)] int skip,
+        [FromQuery] string lastMessageId,
         [FromQuery, Range(1, 100)] int take)
     {
-        var (messages, totalCount) = await messageService.SearchAsync(skip, take, chatId);
+        var (messages, totalCount, lastMessage) = await messageService.SearchAsync(lastMessageId, take, chatId);
 
         Response.Headers.Add("X-TotalCount", totalCount.ToString());
+        Response.Headers.Add("X-LastMessageId", lastMessage);
 
         return Ok(messages);
     }
@@ -59,7 +63,7 @@ public class MessagesController : ControllerBase
 
         if (!result.Successed)
         {
-            return BadRequest(result.Errors);
+            return BadRequest(result.ToProblemDetails());
         }
 
         return Ok(message);
@@ -72,18 +76,18 @@ public class MessagesController : ControllerBase
     /// <param name="model">Updated model</param>
     /// <response code="204">Successfully updated</response>
     /// <response code="400">Problem details</response>
-    [HttpPut("{id:guid}")]
+    [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UpdateAsync(
-        [FromRoute] Guid id,
+    public async Task<ActionResult> UpdateMessageAsync(
+        [FromRoute] string id,
         [FromBody] UpdateMessageModel model)
     {
         var result = await messageService.UpdateAsync(id, model.Message);
 
         if (!result.Successed)
         {
-            return BadRequest(result.Errors);
+            return BadRequest(result.ToProblemDetails());
         }
 
         return NoContent();
@@ -94,10 +98,11 @@ public class MessagesController : ControllerBase
     /// </summary>
     /// <param name="id">Message identifier</param>
     /// <response code="204">Message successfully deleted</response>
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> DeleteAsync([FromRoute] Guid id)
+    public async Task<ActionResult> DeleteMessageAsync(
+        [FromRoute] string id)
     {
         await messageService.DeleteAsync(id);
 

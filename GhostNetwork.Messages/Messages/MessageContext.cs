@@ -1,4 +1,4 @@
-﻿namespace GhostNetwork.Messages;
+﻿namespace GhostNetwork.Messages.Messages;
 
 public class MessageContext
 {

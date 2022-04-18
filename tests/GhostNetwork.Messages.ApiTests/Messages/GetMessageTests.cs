@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -16,11 +17,12 @@ public class GetMessageTests
     {
         // Arrange
         var chatId = Guid.NewGuid();
-        const int skip = 0;
+        var id = Guid.NewGuid().ToString();
         const int take = 1;
 
-        var message = new Message(Guid.NewGuid(), chatId, Guid.NewGuid(), DateTimeOffset.Now, false, "Test");
-        var messages = new List<Message>
+        var message = new Message(id, chatId, Guid.NewGuid(), DateTimeOffset.Now, false, "Test");
+
+        var messages = new List<Message>()
         {
             message
         };
@@ -28,8 +30,8 @@ public class GetMessageTests
         var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
-            .Setup(x => x.SearchAsync(skip, take, chatId))
-            .ReturnsAsync((messages, messages.Count));
+            .Setup(x => x.SearchAsync(id, take, chatId))
+            .ReturnsAsync((messages, messages.Count, messages[^1].Id));
 
         var client = TestServerHelper.New(collection =>
         {

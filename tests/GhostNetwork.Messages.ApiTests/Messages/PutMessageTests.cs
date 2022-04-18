@@ -3,7 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Domain;
 using GhostNetwork.Messages.Api.Controllers;
-using GhostNetwork.Messages.Chats;
+using GhostNetwork.Messages.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -18,12 +18,11 @@ public class PutMessageTests
     {
         // Arrange
         var chatId = Guid.NewGuid();
-        var messageId = Guid.NewGuid();
+        var messageId = Guid.NewGuid().ToString();
 
         var model = new UpdateMessageModel("Upd");
 
         var serviceMock = new Mock<IMessagesService>();
-        var chatServiceMock = new Mock<IChatsService>();
 
         serviceMock
             .Setup(x => x.UpdateAsync(messageId, model.Message))
@@ -32,7 +31,6 @@ public class PutMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => chatServiceMock.Object);
         });
 
         // Act
@@ -47,12 +45,11 @@ public class PutMessageTests
     {
         // Arrange
         var chatId = Guid.NewGuid();
-        var messageId = Guid.NewGuid();
+        var messageId = Guid.NewGuid().ToString();
 
         var model = new UpdateMessageModel("Upd");
 
         var serviceMock = new Mock<IMessagesService>();
-        var chatServiceMock = new Mock<IChatsService>();
 
         serviceMock
             .Setup(x => x.UpdateAsync(messageId, model.Message))
@@ -61,7 +58,6 @@ public class PutMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => chatServiceMock.Object);
         });
 
         // Act

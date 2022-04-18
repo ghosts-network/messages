@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace GhostNetwork.Messages
+namespace GhostNetwork.Messages.Messages
 {
     public class Message
     {
-        public Message(Guid id, Guid chatId, Guid senderId, DateTimeOffset sentOn, bool isUpdated, string data)
+        public Message(string id, Guid chatId, Guid senderId, DateTimeOffset sentOn, bool isUpdated, string data)
         {
             Id = id;
             ChatId = chatId;
@@ -14,7 +14,7 @@ namespace GhostNetwork.Messages
             Data = data;
         }
 
-        public Guid Id { get; private set; }
+        public string Id { get; }
 
         public Guid ChatId { get; private set; }
 
@@ -28,11 +28,9 @@ namespace GhostNetwork.Messages
 
         public static Message NewMessage(Guid chatId, Guid senderId, string data)
         {
-            var id = Guid.NewGuid();
-
             var sentOn = DateTimeOffset.UtcNow;
 
-            return new Message(id, chatId, senderId, sentOn, false, data);
+            return new Message(default, chatId, senderId, sentOn, false, data);
         }
 
         public Message Update(string data)

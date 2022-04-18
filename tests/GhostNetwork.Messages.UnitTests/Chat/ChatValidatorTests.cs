@@ -46,4 +46,25 @@ public class ChatValidatorTests
         // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
     }
+    
+    [Test]
+    public void Chat_Contains_Duplicate_Users()
+    {
+        //Setup
+        var validator = new ChatValidator();
+
+        var userId = Guid.NewGuid();
+
+        var users = new List<Guid>()
+        {
+            userId,
+            userId
+        };
+        
+        //Act
+        var result = validator.Validate(new ChatContext("Test", users));
+        
+        //Assert
+        Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
+    }
 }

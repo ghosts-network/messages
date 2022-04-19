@@ -69,7 +69,7 @@ public class MongoMessageStorage : IMessagesStorage
         var entity = new MessageEntity()
         {
             ChatId = message.ChatId,
-            SenderId = message.SenderId,
+            Author = (UserInfoEntity)message.Author,
             SentOn = message.SentOn,
             Data = message.Data
         };
@@ -113,7 +113,7 @@ public class MongoMessageStorage : IMessagesStorage
         return new Message(
             entity.Id.ToString(),
             entity.ChatId,
-            entity.SenderId,
+            (UserInfo)entity.Author,
             entity.SentOn,
             entity.IsUpdated,
             entity.Data);

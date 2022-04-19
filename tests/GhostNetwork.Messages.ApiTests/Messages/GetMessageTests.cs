@@ -20,13 +20,14 @@ public class GetMessageTests
         var id = Guid.NewGuid().ToString();
         const int take = 1;
 
-        var message = new Message(id, chatId, Guid.NewGuid(), DateTimeOffset.Now, false, "Test");
+        var message = new Message(id, chatId, new UserInfo(Guid.NewGuid(), "Name", null), DateTimeOffset.Now, false, "Test");
 
         var messages = new List<Message>()
         {
             message
         };
 
+        var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
@@ -36,6 +37,7 @@ public class GetMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userMock.Object);
         });
 
         // Act

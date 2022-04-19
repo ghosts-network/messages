@@ -11,8 +11,8 @@ public class MessageEntity
     [BsonElement("chatId")]
     public Guid ChatId { get; set; }
 
-    [BsonElement("senderId")]
-    public Guid SenderId { get; set; }
+    [BsonElement("author")]
+    public UserInfoEntity Author { get; set; }
 
     [BsonElement("sentOn")]
     public DateTimeOffset SentOn { get; set; }

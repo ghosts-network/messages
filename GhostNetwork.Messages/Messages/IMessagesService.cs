@@ -11,7 +11,7 @@ public interface IMessagesService
 
     Task<Message> GetByIdAsync(string id);
 
-    Task<(DomainResult, Message)> SendAsync(Guid chatId, Guid senderId, string data);
+    Task<(DomainResult, Message)> SendAsync(Guid chatId, UserInfo author, string data);
 
     Task DeleteAsync(string id);
 
@@ -39,16 +39,16 @@ public class MessagesService : IMessagesService
         return await messageStorage.GetByIdAsync(id);
     }
 
-    public async Task<(DomainResult, Message)> SendAsync(Guid chatId, Guid senderId, string data)
+    public async Task<(DomainResult, Message)> SendAsync(Guid chatId, UserInfo author, string data)
     {
-        var participantsCheck = await messageStorage.ParticipantsCheckAsync(senderId);
+        var participantsCheck = await messageStorage.ParticipantsCheckAsync(author.Id);
 
         if (!participantsCheck)
         {
             return (DomainResult.Error("You are not a member of this chat!"), default);
         }
 
-        var newMessage = Message.NewMessage(chatId, senderId, data);
+        var newMessage = Message.NewMessage(chatId, author, data);
 
         var result = validator.Validate(new MessageContext(data));
 

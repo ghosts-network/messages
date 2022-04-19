@@ -22,6 +22,7 @@ public class PutMessageTests
 
         var model = new UpdateMessageModel("Upd");
 
+        var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
@@ -31,6 +32,7 @@ public class PutMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userMock.Object);
         });
 
         // Act
@@ -49,6 +51,7 @@ public class PutMessageTests
 
         var model = new UpdateMessageModel("Upd");
 
+        var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
@@ -58,6 +61,7 @@ public class PutMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userMock.Object);
         });
 
         // Act

@@ -4,11 +4,11 @@ namespace GhostNetwork.Messages.Messages
 {
     public class Message
     {
-        public Message(string id, Guid chatId, Guid senderId, DateTimeOffset sentOn, bool isUpdated, string data)
+        public Message(string id, Guid chatId, UserInfo author, DateTimeOffset sentOn, bool isUpdated, string data)
         {
             Id = id;
             ChatId = chatId;
-            SenderId = senderId;
+            Author = author;
             SentOn = sentOn;
             IsUpdated = isUpdated;
             Data = data;
@@ -16,9 +16,9 @@ namespace GhostNetwork.Messages.Messages
 
         public string Id { get; }
 
-        public Guid ChatId { get; private set; }
+        public Guid ChatId { get; }
 
-        public Guid SenderId { get; private set; }
+        public UserInfo Author { get; }
 
         public DateTimeOffset SentOn { get; private set; }
 
@@ -26,11 +26,11 @@ namespace GhostNetwork.Messages.Messages
 
         public string Data { get; private set; }
 
-        public static Message NewMessage(Guid chatId, Guid senderId, string data)
+        public static Message NewMessage(Guid chatId, UserInfo author, string data)
         {
             var sentOn = DateTimeOffset.UtcNow;
 
-            return new Message(default, chatId, senderId, sentOn, false, data);
+            return new Message(default, chatId, author, sentOn, false, data);
         }
 
         public Message Update(string data)

@@ -1,8 +1,10 @@
 using System;
+using GhostNetwork.Messages.Api.Helpers;
 using GhostNetwork.Messages.Api.Helpers.OpenApi;
 using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Messages;
 using GhostNetwork.Messages.MongoDb;
+using GhostNetwork.Profiles.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -58,6 +60,9 @@ namespace GhostNetwork.Messages.Api
             services.AddScoped<IMessagesStorage, MongoMessageStorage>();
             services.AddScoped<IMessagesService, MessagesService>();
             services.AddScoped<IValidator<MessageContext>, MessageValidator>();
+
+            services.AddScoped<IProfilesApi>(_ => new ProfilesApi(Configuration["PROFILES_ADDRESS"]));
+            services.AddScoped<IUserProvider, ProfilesApiUserProvider>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider provider)

@@ -18,6 +18,7 @@ public class DeleteMessageTests
         var chatId = Guid.NewGuid();
         var messageId = Guid.NewGuid().ToString();
 
+        var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
@@ -26,6 +27,7 @@ public class DeleteMessageTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userMock.Object);
         });
 
         // Act

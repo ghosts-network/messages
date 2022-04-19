@@ -17,20 +17,21 @@ public class PostMessageTests
     public async Task SendMessage_Ok()
     {
         // Arrange
+        var model = new CreateMessageModel("id", "message");
         var chatId = Guid.NewGuid();
-        var model = new CreateMessageModel(Guid.NewGuid(), "Test");
+        var message = new Message("Guid.Empty", chatId, null, DateTimeOffset.Now, false, model.Message);
 
-        var message = new Message(Guid.NewGuid().ToString(), chatId, model.SenderId, DateTimeOffset.Now, false, model.Message);
-
+        var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
-            .Setup(x => x.SendAsync(chatId, model.SenderId, model.Message))
+            .Setup(x => x.SendAsync(chatId, It.IsAny<UserInfo>(), model.Message))
             .ReturnsAsync((DomainResult.Success(), message));
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userMock.Object);
         });
 
         // Act
@@ -44,18 +45,20 @@ public class PostMessageTests
     public async Task SendMessage_BadRequest()
     {
         // Arrange
+        var model = new CreateMessageModel("id", "message");
         var chatId = Guid.NewGuid();
-        var model = new CreateMessageModel(Guid.NewGuid(), "Test");
 
+        var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
-            .Setup(x => x.SendAsync(chatId, model.SenderId, model.Message))
+            .Setup(x => x.SendAsync(chatId, It.IsAny<UserInfo>(), model.Message))
             .ReturnsAsync((DomainResult.Error(string.Empty), default));
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userMock.Object);
         });
 
         // Act

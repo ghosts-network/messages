@@ -13,6 +13,7 @@ compile images from the sources - `docker-compose build && docker-compose up -d`
 | Environment                    | Description                                               |
 |--------------------------------|-----------------------------------------------------------|
 | MONGO_CONNECTION               | Connection string to MongoDb instance                     |
+| PROFILES_ADDRESS               | Adress to profile microservice                            |
 
 ## Development
 

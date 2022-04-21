@@ -42,12 +42,30 @@ export default function() {
         {
             let url = BASE_URL + `/chats/${chatId}/messages`;
             // TODO: edit the parameters of the request body.
-            let body = {"senderId": "uuid", "message": "string"};
+            let body = {"senderId": "string", "message": "string"};
             let params = {headers: {"Content-Type": "application/json", "Accept": "application/json"}};
             let request = http.post(url, JSON.stringify(body), params);
 
             check(request, {
                 "New message": (r) => r.status === 200
+            });
+        }
+    });
+
+    group("/chats/{chatId}/messages/{messageId}", () => {
+        let chatId = 'TODO_EDIT_THE_CHATID'; // specify value as there is no example value for this parameter in OpenAPI spec
+        let messageId = 'TODO_EDIT_THE_MESSAGEID'; // specify value as there is no example value for this parameter in OpenAPI spec
+
+        // Request No. 1
+        {
+            let url = BASE_URL + `/chats/${chatId}/messages/${messageId}`;
+            let request = http.del(url);
+
+            check(request, {
+                "Success": (r) => r.status === 200
+            });
+            check(request, {
+                "Message successfully deleted": (r) => r.status === 204
             });
         }
     });
@@ -97,51 +115,35 @@ export default function() {
         }
     });
 
-    group("/chats", () => {
+    group("/chats/messages/{messageId}", () => {
+        let messageId = 'TODO_EDIT_THE_MESSAGEID'; // specify value as there is no example value for this parameter in OpenAPI spec
 
         // Request No. 1
         {
-            let url = BASE_URL + `/chats`;
+            let url = BASE_URL + `/chats/messages/${messageId}`;
             // TODO: edit the parameters of the request body.
-            let body = {"name": "string", "users": "list"};
-            let params = {headers: {"Content-Type": "application/json", "Accept": "application/json"}};
-            let request = http.post(url, JSON.stringify(body), params);
-
-            check(request, {
-                "Connection successfully created": (r) => r.status === 200
-            });
-        }
-    });
-
-    group("/chats/{chatId}/messages/{id}", () => {
-        let chatId = 'TODO_EDIT_THE_CHATID'; // specify value as there is no example value for this parameter in OpenAPI spec
-        let id = 'TODO_EDIT_THE_ID'; // specify value as there is no example value for this parameter in OpenAPI spec
-
-        // Request No. 1
-        {
-            let url = BASE_URL + `/chats/${chatId}/messages/${id}`;
-            // TODO: edit the parameters of the request body.
-            let body = {"message": "string"};
+            let body = {"senderId": "uuid", "message": "string"};
             let params = {headers: {"Content-Type": "application/json", "Accept": "application/json"}};
             let request = http.put(url, JSON.stringify(body), params);
 
             check(request, {
                 "Successfully updated": (r) => r.status === 204
             });
-
-            sleep(SLEEP_DURATION);
         }
+    });
 
-        // Request No. 2
+    group("/chats", () => {
+
+        // Request No. 1
         {
-            let url = BASE_URL + `/chats/${chatId}/messages/${id}`;
-            let request = http.del(url);
+            let url = BASE_URL + `/chats`;
+            // TODO: edit the parameters of the request body.
+            let body = {"name": "string", "participants": "list"};
+            let params = {headers: {"Content-Type": "application/json", "Accept": "application/json"}};
+            let request = http.post(url, JSON.stringify(body), params);
 
             check(request, {
-                "Success": (r) => r.status === 200
-            });
-            check(request, {
-                "Message successfully deleted": (r) => r.status === 204
+                "Connection successfully created": (r) => r.status === 200
             });
         }
     });

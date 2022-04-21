@@ -57,7 +57,7 @@ public class MongoMessageStorage : IMessagesStorage
 
     public async Task<bool> ParticipantsCheckAsync(Guid userId)
     {
-        var filter = Builders<ChatEntity>.Filter.AnyEq(p => p.Participants.Select(x => x.Id), userId);
+        var filter = Builders<ChatEntity>.Filter.Where(p => p.Participants.Any(x => x.Id == userId));
 
         var entity = await context.Chat.Find(filter).FirstOrDefaultAsync();
 

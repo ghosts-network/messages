@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Domain;
 
@@ -11,9 +12,9 @@ namespace GhostNetwork.Messages.Chats
 
         Task<Chat> GetByIdAsync(Guid id);
 
-        Task<(DomainResult, Guid)> CreateAsync(string name, List<Guid> users);
+        Task<(DomainResult, Guid)> CreateAsync(string name, List<UserInfo> participants);
 
-        Task<DomainResult> UpdateAsync(Guid id, string name, List<Guid> users);
+        Task<DomainResult> UpdateAsync(Guid id, string name, List<UserInfo> participants);
 
         Task DeleteAsync(Guid id);
     }
@@ -39,25 +40,25 @@ namespace GhostNetwork.Messages.Chats
             return await chatStorage.GetByIdAsync(id);
         }
 
-        public async Task<(DomainResult, Guid)> CreateAsync(string name, List<Guid> users)
+        public async Task<(DomainResult, Guid)> CreateAsync(string name, List<UserInfo> participants)
         {
-            var result = validator.Validate(new ChatContext(name, users));
+            var result = validator.Validate(new ChatContext(name, participants.Select(x => x.Id).ToList()));
 
             if (!result.Successed)
             {
                 return (result, Guid.Empty);
             }
 
-            var chat = Chat.NewChat(name, users);
+            var chat = Chat.NewChat(name, participants);
 
             var id = await chatStorage.CreatAsync(chat);
 
             return (result, id);
         }
 
-        public async Task<DomainResult> UpdateAsync(Guid id, string name, List<Guid> users)
+        public async Task<DomainResult> UpdateAsync(Guid id, string name, List<UserInfo> participants)
         {
-            var result = validator.Validate(new ChatContext(name, users));
+            var result = validator.Validate(new ChatContext(name, participants.Select(x => x.Id).ToList()));
 
             if (!result.Successed)
             {
@@ -65,7 +66,7 @@ namespace GhostNetwork.Messages.Chats
             }
 
             var chat = await chatStorage.GetByIdAsync(id);
-            chat.Update(name, users);
+            chat.Update(name, participants);
 
             await chatStorage.UpdateAsync(chat);
 

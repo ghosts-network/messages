@@ -14,10 +14,12 @@ namespace GhostNetwork.Messages.Api.Controllers;
 public class ChatsController : ControllerBase
 {
     private readonly IChatsService chatService;
+    private readonly IUserProvider userProvider;
 
-    public ChatsController(IChatsService chatService)
+    public ChatsController(IChatsService chatService, IUserProvider userProvider)
     {
         this.chatService = chatService;
+        this.userProvider = userProvider;
     }
 
     /// <summary>
@@ -74,7 +76,19 @@ public class ChatsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Chat>> CreateNewChatAsync([FromBody] CreateChatModel model)
     {
-        var (result, id) = await chatService.CreateAsync(model.Name, model.Users);
+        var participants = new List<UserInfo>();
+
+        foreach (var userId in model.Participants)
+        {
+            var participant = await userProvider.GetByIdAsync(userId);
+
+            if (participant is not null)
+            {
+                participants.Add(participant);
+            }
+        }
+
+        var (result, id) = await chatService.CreateAsync(model.Name, participants);
 
         if (!result.Successed)
         {
@@ -95,7 +109,19 @@ public class ChatsController : ControllerBase
     [HttpPut("{chatId:guid}")]
     public async Task<ActionResult> UpdateAsync([FromRoute] Guid chatId, [FromBody] UpdateChatModel model)
     {
-        var result = await chatService.UpdateAsync(chatId, model.Name, model.Users);
+        var participants = new List<UserInfo>();
+
+        foreach (var userId in model.Participants)
+        {
+            var participant = await userProvider.GetByIdAsync(userId);
+
+            if (participant is not null)
+            {
+                participants.Add(participant);
+            }
+        }
+
+        var result = await chatService.UpdateAsync(chatId, model.Name, participants);
 
         if (!result.Successed)
         {
@@ -119,6 +145,6 @@ public class ChatsController : ControllerBase
     }
 }
 
-public record CreateChatModel(string Name, List<Guid> Users);
+public record CreateChatModel(string Name, List<string> Participants);
 
-public record UpdateChatModel(string Name, List<Guid> Users);
+public record UpdateChatModel(string Name, List<string> Participants);

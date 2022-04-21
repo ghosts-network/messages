@@ -5,30 +5,30 @@ namespace GhostNetwork.Messages.Chats;
 
 public class Chat
 {
-    public Chat(Guid id, string name, List<Guid> users)
+    public Chat(Guid id, string name, IEnumerable<UserInfo> participants)
     {
         Id = id;
         Name = name;
-        Users = users;
+        Participants = participants;
     }
 
     public Guid Id { get; }
 
     public string Name { get; private set; }
 
-    public List<Guid> Users { get; private set; }
+    public IEnumerable<UserInfo> Participants { get; private set; }
 
-    public static Chat NewChat(string name, List<Guid> users)
+    public static Chat NewChat(string name, IEnumerable<UserInfo> participants)
     {
         var id = Guid.NewGuid();
 
-        return new Chat(id, name, users);
+        return new Chat(id, name, participants);
     }
 
-    public Chat Update(string name, List<Guid> users)
+    public Chat Update(string name, IEnumerable<UserInfo> participants)
     {
         Name = name;
-        Users = users;
+        Participants = participants;
 
         return this;
     }

@@ -12,7 +12,7 @@ namespace GhostNetwork.Messages.MongoDb
         [BsonElement("name")]
         public string Name { get; set; }
 
-        [BsonElement("users")]
-        public List<Guid> Users { get; set; }
+        [BsonElement("participants")]
+        public IList<UserInfoEntity> Participants { get; set; }
     }
 }

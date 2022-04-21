@@ -16,7 +16,7 @@ public class GetChatTests
     public async Task GetChatInfo_Ok()
     {
         // Arrange
-        var chat = Chats.Chat.NewChat("Test", new List<Guid> { Guid.NewGuid() });
+        var chat = Chats.Chat.NewChat("Test", new List<UserInfo>());
 
         var serviceMock = new Mock<IChatsService>();
 

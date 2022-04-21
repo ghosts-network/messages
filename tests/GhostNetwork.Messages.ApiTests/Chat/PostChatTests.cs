@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Domain;
@@ -18,14 +19,14 @@ public class PostChatTests
     public async Task CreateNewChat_Ok()
     {
         // Arrange
-        var model = new CreateChatModel(It.IsAny<string>(), new List<Guid> { Guid.NewGuid() });
+        var model = new UpdateChatModel(It.IsAny<string>(), new List<string>());
 
-        var chat = Chats.Chat.NewChat(model.Name, model.Users);
+        var chat = Chats.Chat.NewChat(model.Name, It.IsAny<List<UserInfo>>());
 
         var serviceMock = new Mock<IChatsService>();
 
         serviceMock
-            .Setup(x => x.CreateAsync(chat.Name, chat.Users))
+            .Setup(x => x.CreateAsync(chat.Name, It.IsAny<List<UserInfo>>()))
             .ReturnsAsync((DomainResult.Success(), chat.Id));
 
         var client = TestServerHelper.New(collection =>

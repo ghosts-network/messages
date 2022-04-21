@@ -18,7 +18,7 @@ namespace GhostNetwork.Messages.MongoDb
 
         public async Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId)
         {
-            var filter = Builders<ChatEntity>.Filter.AnyEq(p => p.Users, userId);
+            var filter = Builders<ChatEntity>.Filter.Where(p => p.Participants.Any(x => x.Id == userId));
 
             var totalCount = await context.Chat.Find(filter).CountDocumentsAsync();
 
@@ -46,7 +46,12 @@ namespace GhostNetwork.Messages.MongoDb
             {
                 Id = chat.Id,
                 Name = chat.Name,
-                Users = chat.Users
+                Participants = chat.Participants.Select(x => new UserInfoEntity()
+                {
+                    Id = x.Id,
+                    FullName = x.FullName,
+                    AvatarUrl = x.AvatarUrl
+                }).ToList()
             };
 
             await context.Chat.InsertOneAsync(entity);
@@ -59,8 +64,8 @@ namespace GhostNetwork.Messages.MongoDb
             var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chat.Id);
 
             var update = Builders<ChatEntity>.Update
-                .Set(p => p.Users, chat.Users)
-                .Set(p => p.Name, chat.Name);
+                .Set(p => p.Name, chat.Name)
+                .Set(p => p.Participants, chat.Participants.Select(x => new UserInfoEntity { Id = x.Id, FullName = x.FullName, AvatarUrl = x.AvatarUrl }).ToList());
 
             await context.Chat.UpdateOneAsync(filter, update);
         }
@@ -79,7 +84,15 @@ namespace GhostNetwork.Messages.MongoDb
             return new Chat(
                 entity.Id,
                 entity.Name,
-                entity.Users);
+                entity.Participants.Select(ToDomainUser));
+        }
+
+        private static UserInfo ToDomainUser(UserInfoEntity entity)
+        {
+            return new UserInfo(
+                entity.Id,
+                entity.FullName,
+                entity.AvatarUrl);
         }
     }
 }

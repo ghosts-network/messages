@@ -20,12 +20,12 @@ public class PutChatTests
         // Arrange
         var chatId = Guid.NewGuid();
 
-        var model = new UpdateChatModel(It.IsAny<string>(), new List<Guid> { Guid.NewGuid() });
+        var model = new UpdateChatModel(It.IsAny<string>(), new List<string>());
 
         var serviceMock = new Mock<IChatsService>();
 
         serviceMock
-            .Setup(x => x.UpdateAsync(chatId, model.Name, model.Users))
+            .Setup(x => x.UpdateAsync(chatId, model.Name, It.IsAny<List<UserInfo>>()))
             .ReturnsAsync(DomainResult.Success());
 
         var client = TestServerHelper.New(collection =>
@@ -46,12 +46,12 @@ public class PutChatTests
         // Arrange
         var chatId = Guid.NewGuid();
 
-        var model = new UpdateChatModel(It.IsAny<string>(), new List<Guid> { Guid.NewGuid() });
+        var model = new UpdateChatModel(It.IsAny<string>(), new List<string>());
 
         var serviceMock = new Mock<IChatsService>();
 
         serviceMock
-            .Setup(x => x.UpdateAsync(chatId, model.Name, model.Users))
+            .Setup(x => x.UpdateAsync(chatId, model.Name, It.IsAny<List<UserInfo>>()))
             .ReturnsAsync(DomainResult.Error("Err"));
 
         var client = TestServerHelper.New(collection =>

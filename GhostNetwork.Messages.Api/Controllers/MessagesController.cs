@@ -108,12 +108,20 @@ public class MessagesController : ControllerBase
     /// </summary>
     /// <param name="messageId">Message identifier</param>
     /// <response code="204">Message successfully deleted</response>
+    /// <response code="404">Message is not found</response>
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpDelete("{chatId:guid}/messages/{messageId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> DeleteMessageAsync(
         [FromRoute] string messageId)
     {
+        var message = await messageService.GetByIdAsync(messageId);
+
+        if (message is null)
+        {
+            return NotFound();
+        }
+
         await messageService.DeleteAsync(messageId);
 
         return NoContent();

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Api.Helpers;
 using GhostNetwork.Messages.Chats;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +30,7 @@ public class ChatsController : ControllerBase
     /// <param name="skip">Skip exist chats up to a specified position</param>
     /// <param name="take">Take exist chats up to a specified position</param>
     /// <param name="userId">Filters by user</param>
-    /// <response code="200">Exist chats</response>
+    /// <response code="200">Exist user chats</response>
     [HttpGet("search/{userId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [SwaggerResponseHeader(StatusCodes.Status200OK, "X-TotalCount", "Number", "Total number of user chats")]
@@ -69,9 +71,9 @@ public class ChatsController : ControllerBase
     /// Create new chat connection
     /// </summary>
     /// <param name="model">Create chat model</param>
-    /// <response code="200">Connection successfully created</response>
-    /// <response code="400"></response>
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    /// <response code="201">Connection successfully created</response>
+    /// <response code="400">Smt went wrong</response>
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpPost]
     public async Task<ActionResult<Chat>> CreateNewChatAsync([FromBody] CreateChatModel model)
@@ -88,11 +90,16 @@ public class ChatsController : ControllerBase
             }
         }
 
+        if (!participants.Any())
+        {
+            return BadRequest();
+        }
+
         var (result, id) = await chatService.CreateAsync(model.Name, participants);
 
         if (!result.Successed)
         {
-            return BadRequest(result.Errors);
+            return BadRequest(result.ToProblemDetails());
         }
 
         return Created(string.Empty, await chatService.GetByIdAsync(id));
@@ -103,8 +110,9 @@ public class ChatsController : ControllerBase
     /// </summary>
     /// <param name="chatId">Chat id</param>
     /// <param name="model">Update chat model</param>
-    /// <response code="200">Chat successfully updated</response>
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    /// <response code="204">Chat successfully updated</response>
+    /// <response code="204">Smt went wrong</response>
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpPut("{chatId:guid}")]
     public async Task<ActionResult> UpdateAsync([FromRoute] Guid chatId, [FromBody] UpdateChatModel model)
@@ -121,11 +129,16 @@ public class ChatsController : ControllerBase
             }
         }
 
+        if (!participants.Any())
+        {
+            return BadRequest();
+        }
+
         var result = await chatService.UpdateAsync(chatId, model.Name, participants);
 
         if (!result.Successed)
         {
-            return BadRequest(result.Errors);
+            return BadRequest(result.ToProblemDetails());
         }
 
         return NoContent();
@@ -136,9 +149,19 @@ public class ChatsController : ControllerBase
     /// </summary>
     /// <param name="chatId">Chat id</param>
     /// <response code="204">Chat successfully deleted</response>
+    /// <response code="404">Chat is not found</response>
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpDelete("{chatId:guid}")]
     public async Task<ActionResult> DeleteChatAsync([FromRoute] Guid chatId)
     {
+        var chat = await chatService.GetByIdAsync(chatId);
+
+        if (chat is null)
+        {
+            return NotFound();
+        }
+
         await chatService.DeleteAsync(chatId);
 
         return NoContent();

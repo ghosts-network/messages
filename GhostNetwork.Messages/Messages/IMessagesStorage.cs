@@ -12,7 +12,7 @@ public interface IMessagesStorage
 
     Task<bool> ParticipantsCheckAsync(Guid userId);
 
-    Task<Message> SendAsync(Message message);
+    Task<string> SendAsync(Message message);
 
     Task DeleteAsync(string id);
 

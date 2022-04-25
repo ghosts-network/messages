@@ -11,11 +11,11 @@ public interface IMessagesService
 
     Task<Message> GetByIdAsync(string id);
 
-    Task<(DomainResult, Message)> SendAsync(Guid chatId, UserInfo author, string data);
+    Task<(DomainResult, string)> SendAsync(Guid chatId, UserInfo author, string data);
 
     Task DeleteAsync(string id);
 
-    Task<DomainResult> UpdateAsync(string id, string data);
+    Task<DomainResult> UpdateAsync(string id, string data, Guid userId);
 }
 
 public class MessagesService : IMessagesService
@@ -39,7 +39,7 @@ public class MessagesService : IMessagesService
         return await messageStorage.GetByIdAsync(id);
     }
 
-    public async Task<(DomainResult, Message)> SendAsync(Guid chatId, UserInfo author, string data)
+    public async Task<(DomainResult, string)> SendAsync(Guid chatId, UserInfo author, string data)
     {
         var participantsCheck = await messageStorage.ParticipantsCheckAsync(author.Id);
 
@@ -57,9 +57,9 @@ public class MessagesService : IMessagesService
             return (result, default);
         }
 
-        var message = await messageStorage.SendAsync(newMessage);
+        var id = await messageStorage.SendAsync(newMessage);
 
-        return (result, message);
+        return (result, id);
     }
 
     public async Task DeleteAsync(string id)
@@ -67,8 +67,15 @@ public class MessagesService : IMessagesService
         await messageStorage.DeleteAsync(id);
     }
 
-    public async Task<DomainResult> UpdateAsync(string id, string data)
+    public async Task<DomainResult> UpdateAsync(string id, string data, Guid userId)
     {
+        var message = await messageStorage.GetByIdAsync(id);
+
+        if (message.Author.Id != userId)
+        {
+            return DomainResult.Error("You are not the author of this message");
+        }
+
         var result = validator.Validate(new MessageContext(data));
 
         if (!result.Successed)

@@ -12,7 +12,7 @@ namespace GhostNetwork.Messages.Chats
 
         Task<Chat> GetByIdAsync(Guid id);
 
-        Task<(DomainResult, Guid)> CreateAsync(string name, List<UserInfo> participants);
+        Task<(DomainResult, Chat)> CreateAsync(string name, List<UserInfo> participants);
 
         Task<DomainResult> UpdateAsync(Guid id, string name, List<UserInfo> participants);
 
@@ -40,25 +40,25 @@ namespace GhostNetwork.Messages.Chats
             return await chatStorage.GetByIdAsync(id);
         }
 
-        public async Task<(DomainResult, Guid)> CreateAsync(string name, List<UserInfo> participants)
+        public async Task<(DomainResult, Chat)> CreateAsync(string name, List<UserInfo> participants)
         {
-            var result = validator.Validate(new ChatContext(name, participants.Select(x => x.Id).ToList()));
+            var result = validator.Validate(new ChatContext(name, participants));
 
             if (!result.Successed)
             {
-                return (result, Guid.Empty);
+                return (result, default);
             }
 
-            var chat = Chat.NewChat(name, participants);
+            var newChat = Chat.NewChat(name, participants);
 
-            var id = await chatStorage.CreatAsync(chat);
+            var chat = await chatStorage.CreatAsync(newChat);
 
-            return (result, id);
+            return (result, chat);
         }
 
         public async Task<DomainResult> UpdateAsync(Guid id, string name, List<UserInfo> participants)
         {
-            var result = validator.Validate(new ChatContext(name, participants.Select(x => x.Id).ToList()));
+            var result = validator.Validate(new ChatContext(name, participants));
 
             if (!result.Successed)
             {

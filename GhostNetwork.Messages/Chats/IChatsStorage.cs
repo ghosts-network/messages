@@ -10,7 +10,7 @@ public interface IChatsStorage
 
     Task<Chat> GetByIdAsync(Guid id);
 
-    Task<Guid> CreatAsync(Chat chat);
+    Task<Chat> CreatAsync(Chat chat);
 
     Task UpdateAsync(Chat chat);
 

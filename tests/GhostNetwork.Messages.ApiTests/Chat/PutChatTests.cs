@@ -19,18 +19,25 @@ public class PutChatTests
     {
         // Arrange
         var chatId = Guid.NewGuid();
+        var model = new UpdateChatModel("Name", new List<string>());
 
-        var model = new UpdateChatModel(It.IsAny<string>(), new List<string>());
+        var chat = new Chats.Chat(chatId, model.Name, It.IsAny<List<UserInfo>>());
 
         var serviceMock = new Mock<IChatsService>();
+        var userServiceMock = new Mock<IUserProvider>();
 
         serviceMock
             .Setup(x => x.UpdateAsync(chatId, model.Name, It.IsAny<List<UserInfo>>()))
             .ReturnsAsync(DomainResult.Success());
 
+        serviceMock
+            .Setup(x => x.GetByIdAsync(chatId))
+            .ReturnsAsync(chat);
+
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userServiceMock.Object);
         });
 
         // Act
@@ -46,9 +53,10 @@ public class PutChatTests
         // Arrange
         var chatId = Guid.NewGuid();
 
-        var model = new UpdateChatModel(It.IsAny<string>(), new List<string>());
+        var model = new UpdateChatModel("Name", new List<string>());
 
         var serviceMock = new Mock<IChatsService>();
+        var userServiceMock = new Mock<IUserProvider>();
 
         serviceMock
             .Setup(x => x.UpdateAsync(chatId, model.Name, It.IsAny<List<UserInfo>>()))
@@ -57,6 +65,7 @@ public class PutChatTests
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userServiceMock.Object);
         });
 
         // Act

@@ -64,7 +64,7 @@ public class MongoMessageStorage : IMessagesStorage
         return entity is not null;
     }
 
-    public async Task<Message> SendAsync(Message message)
+    public async Task<string> SendAsync(Message message)
     {
         var entity = new MessageEntity()
         {
@@ -76,7 +76,7 @@ public class MongoMessageStorage : IMessagesStorage
 
         await context.Message.InsertOneAsync(entity);
 
-        return ToDomain(entity);
+        return entity.Id.ToString();
     }
 
     public async Task DeleteAsync(string id)

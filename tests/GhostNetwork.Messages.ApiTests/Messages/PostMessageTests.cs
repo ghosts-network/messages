@@ -26,7 +26,11 @@ public class PostMessageTests
 
         serviceMock
             .Setup(x => x.SendAsync(chatId, It.IsAny<UserInfo>(), model.Message))
-            .ReturnsAsync((DomainResult.Success(), message));
+            .ReturnsAsync((DomainResult.Success(), message.Id));
+
+        serviceMock
+            .Setup(x => x.GetByIdAsync(message.Id))
+            .ReturnsAsync(message);
 
         var client = TestServerHelper.New(collection =>
         {
@@ -38,7 +42,7 @@ public class PostMessageTests
         var response = await client.PostAsync($"/chats/{chatId}/messages", model.AsJsonContent());
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
     }
 
     [Test]

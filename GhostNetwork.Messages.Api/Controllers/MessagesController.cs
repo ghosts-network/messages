@@ -29,7 +29,7 @@ public class MessagesController : ControllerBase
     /// <param name="chatId">Chat identifier</param>
     /// <param name="lastMessageId">Last message id for cursor pagination</param>
     /// <param name="take">Take exist messages up to a specified position</param>
-    /// <response code="200">Chat messages</response>
+    /// <response code="200">Messages</response>
     [HttpGet("{chatId:guid}/messages")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [SwaggerResponseHeader(StatusCodes.Status200OK, "X-TotalCount", "Number", "Total number of messages")]
@@ -48,6 +48,27 @@ public class MessagesController : ControllerBase
     }
 
     /// <summary>
+    /// Get message by id
+    /// </summary>
+    /// <param name="messageId">Message id</param>
+    /// <response code="200">Message</response>
+    /// <response code="404">Message is not found</response>
+    [HttpGet("{messageId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Message>> GetByIdAsync([FromRoute] string messageId)
+    {
+        var message = await messageService.GetByIdAsync(messageId);
+
+        if (message is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(message);
+    }
+
+    /// <summary>
     /// Send new message
     /// </summary>
     /// <param name="chatId">Chat identifier</param>
@@ -57,19 +78,19 @@ public class MessagesController : ControllerBase
     [HttpPost("{chatId:guid}/messages")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> SendAsync(
+    public async Task<ActionResult<Message>> SendAsync(
         [FromRoute] Guid chatId,
         [FromBody] CreateMessageModel model)
     {
         var author = await userProvider.GetByIdAsync(model.SenderId);
-        var (result, message) = await messageService.SendAsync(chatId, author, model.Message);
+        var (result, id) = await messageService.SendAsync(chatId, author, model.Message);
 
         if (!result.Successed)
         {
             return BadRequest(result.ToProblemDetails());
         }
 
-        return Ok(message);
+        return Created(Url.Action("GetById", new { id }) ?? string.Empty, await messageService.GetByIdAsync(id));
     }
 
     /// <summary>
@@ -79,21 +100,23 @@ public class MessagesController : ControllerBase
     /// <param name="model">Updated model</param>
     /// <response code="204">Successfully updated</response>
     /// <response code="400">Problem details</response>
+    /// <response code="404">Message not found</response>
     [HttpPut("messages/{messageId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UpdateMessageAsync(
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UpdateAsync(
         [FromRoute] string messageId,
         [FromBody] UpdateMessageModel model)
     {
         var message = await messageService.GetByIdAsync(messageId);
 
-        if (message.Author.Id != model.SenderId)
+        if (message is null)
         {
-            return BadRequest();
+            return NotFound();
         }
 
-        var result = await messageService.UpdateAsync(messageId, model.Message);
+        var result = await messageService.UpdateAsync(messageId, model.Message, model.SenderId);
 
         if (!result.Successed)
         {
@@ -111,8 +134,8 @@ public class MessagesController : ControllerBase
     /// <response code="404">Message is not found</response>
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpDelete("{chatId:guid}/messages/{messageId}")]
-    public async Task<ActionResult> DeleteMessageAsync(
+    [HttpDelete("messages/{messageId}")]
+    public async Task<ActionResult> DeleteAsync(
         [FromRoute] string messageId)
     {
         var message = await messageService.GetByIdAsync(messageId);

@@ -15,7 +15,7 @@ public class ChatValidatorTests
         var validator = new ChatValidator();
 
         // Act
-        var result = validator.Validate(new ChatContext(null, new List<Guid>() { Guid.NewGuid() }));
+        var result = validator.Validate(new ChatContext(null, new List<UserInfo>() { new(Guid.NewGuid(), "Name", null) }));
 
         // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
@@ -28,7 +28,7 @@ public class ChatValidatorTests
         var validator = new ChatValidator();
 
         // Act
-        var result = validator.Validate(new ChatContext("Test", new List<Guid> { Guid.NewGuid() }));
+        var result = validator.Validate(new ChatContext("Test", new List<UserInfo> { new(Guid.NewGuid(), "Name", null) }));
 
         // Assert
         Assert.IsTrue(result.Successed);
@@ -41,30 +41,30 @@ public class ChatValidatorTests
         var validator = new ChatValidator();
 
         // Act
-        var result = validator.Validate(new ChatContext("Test", new List<Guid>()));
+        var result = validator.Validate(new ChatContext("Test", new List<UserInfo>()));
 
         // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
     }
-    
+
     [Test]
     public void Chat_Contains_Duplicate_Users()
     {
-        //Setup
+        // Arrange
         var validator = new ChatValidator();
 
         var userId = Guid.NewGuid();
 
-        var users = new List<Guid>()
+        var users = new List<UserInfo>()
         {
-            userId,
-            userId
+            new UserInfo(userId, "Name", null),
+            new UserInfo(userId, "Name1", null)
         };
-        
-        //Act
+
+        // Act
         var result = validator.Validate(new ChatContext("Test", users));
-        
-        //Assert
+
+        // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
     }
 }

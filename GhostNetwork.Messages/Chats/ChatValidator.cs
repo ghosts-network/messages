@@ -14,7 +14,7 @@ public class ChatValidator : IValidator<ChatContext>
         return resul;
     }
 
-    private DomainResult Validate(string name, List<Guid> users)
+    private DomainResult Validate(string name, List<UserInfo> users)
     {
         var results = new List<DomainError>();
 

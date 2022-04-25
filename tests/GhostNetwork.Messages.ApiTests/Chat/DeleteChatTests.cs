@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Chats;
@@ -17,13 +18,19 @@ public class DeleteChatTests
         // Arrange
         var chatId = Guid.NewGuid();
 
+        var chat = new Chats.Chat(chatId, "Name", It.IsAny<IEnumerable<UserInfo>>());
+
         var chatServiceMock = new Mock<IChatsService>();
+        var userServiceMock = new Mock<IUserProvider>();
+
         chatServiceMock
-            .Setup(x => x.DeleteAsync(chatId));
+            .Setup(x => x.GetByIdAsync(chatId))
+            .ReturnsAsync(chat);
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => chatServiceMock.Object);
+            collection.AddScoped(_ => userServiceMock.Object);
         });
 
         // Act
@@ -31,5 +38,31 @@ public class DeleteChatTests
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Test]
+    public async Task DeleteChat_NotFound()
+    {
+        // Arrange
+        var chatId = Guid.NewGuid();
+
+        var chatServiceMock = new Mock<IChatsService>();
+        var userServiceMock = new Mock<IUserProvider>();
+
+        chatServiceMock
+            .Setup(x => x.GetByIdAsync(chatId))
+            .ReturnsAsync(default(Chats.Chat));
+
+        var client = TestServerHelper.New(collection =>
+        {
+            collection.AddScoped(_ => chatServiceMock.Object);
+            collection.AddScoped(_ => userServiceMock.Object);
+        });
+
+        // Act
+        var response = await client.DeleteAsync($"/chats/{chatId}");
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

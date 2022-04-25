@@ -72,37 +72,22 @@ public class ChatsController : ControllerBase
     /// </summary>
     /// <param name="model">Create chat model</param>
     /// <response code="201">Connection successfully created</response>
-    /// <response code="400">Smt went wrong</response>
+    /// <response code="400">Problem details</response>
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpPost]
     public async Task<ActionResult<Chat>> CreateNewChatAsync([FromBody] CreateChatModel model)
     {
-        var participants = new List<UserInfo>();
+        var participants = await userProvider.SearchAsync(model.Participants);
 
-        foreach (var userId in model.Participants)
+        var (result, chat) = await chatService.CreateAsync(model.Name, participants.ToList());
+
+        if (result.Successed)
         {
-            var participant = await userProvider.GetByIdAsync(userId);
-
-            if (participant is not null)
-            {
-                participants.Add(participant);
-            }
+            return Created(Url.Action("GetById", new { chat.Id }) ?? string.Empty, chat);
         }
 
-        if (!participants.Any())
-        {
-            return BadRequest();
-        }
-
-        var (result, id) = await chatService.CreateAsync(model.Name, participants);
-
-        if (!result.Successed)
-        {
-            return BadRequest(result.ToProblemDetails());
-        }
-
-        return Created(string.Empty, await chatService.GetByIdAsync(id));
+        return BadRequest(result.ToProblemDetails());
     }
 
     /// <summary>
@@ -111,30 +96,15 @@ public class ChatsController : ControllerBase
     /// <param name="chatId">Chat id</param>
     /// <param name="model">Update chat model</param>
     /// <response code="204">Chat successfully updated</response>
-    /// <response code="204">Smt went wrong</response>
+    /// <response code="400">Problem details</response>
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [HttpPut("{chatId:guid}")]
     public async Task<ActionResult> UpdateAsync([FromRoute] Guid chatId, [FromBody] UpdateChatModel model)
     {
-        var participants = new List<UserInfo>();
+        var participants = await userProvider.SearchAsync(model.Participants);
 
-        foreach (var userId in model.Participants)
-        {
-            var participant = await userProvider.GetByIdAsync(userId);
-
-            if (participant is not null)
-            {
-                participants.Add(participant);
-            }
-        }
-
-        if (!participants.Any())
-        {
-            return BadRequest();
-        }
-
-        var result = await chatService.UpdateAsync(chatId, model.Name, participants);
+        var result = await chatService.UpdateAsync(chatId, model.Name, participants.ToList());
 
         if (!result.Successed)
         {

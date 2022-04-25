@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Domain;
@@ -16,28 +15,60 @@ namespace GhostNetwork.Messages.ApiTests.Chat;
 public class PostChatTests
 {
     [Test]
-    public async Task CreateNewChat_Ok()
+    public async Task CreateNewChat_Created()
     {
         // Arrange
-        var model = new UpdateChatModel(It.IsAny<string>(), new List<string>());
+        var model = new UpdateChatModel("Name", new List<string>() { Guid.NewGuid().ToString() });
 
         var chat = Chats.Chat.NewChat(model.Name, It.IsAny<List<UserInfo>>());
 
         var serviceMock = new Mock<IChatsService>();
+        var userServiceMock = new Mock<IUserProvider>();
 
         serviceMock
-            .Setup(x => x.CreateAsync(chat.Name, It.IsAny<List<UserInfo>>()))
-            .ReturnsAsync((DomainResult.Success(), chat.Id));
+            .Setup(x => x.CreateAsync(It.IsAny<string>(), It.IsAny<List<UserInfo>>()))
+            .ReturnsAsync((DomainResult.Success(), chat));
+
+        serviceMock
+            .Setup(x => x.GetByIdAsync(chat.Id))
+            .ReturnsAsync(chat);
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userServiceMock.Object);
         });
 
         // Act
-        var response = await client.PostAsync("/chats", model.AsJsonContent());
+        var response = await client.PostAsync("/chats/", model.AsJsonContent());
 
         // Assert
         Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Test]
+    public async Task Create_EmptyName_BadRequest()
+    {
+        // Arrange
+        var model = new UpdateChatModel("Name", new List<string>() { Guid.NewGuid().ToString() });
+
+        var serviceMock = new Mock<IChatsService>();
+        var userServiceMock = new Mock<IUserProvider>();
+
+        serviceMock
+            .Setup(x => x.CreateAsync(It.IsAny<string>(), It.IsAny<List<UserInfo>>()))
+            .ReturnsAsync((DomainResult.Error("Some error"), default));
+
+        var client = TestServerHelper.New(collection =>
+        {
+            collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userServiceMock.Object);
+        });
+
+        // Act
+        var response = await client.PostAsync("/chats/", model.AsJsonContent());
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

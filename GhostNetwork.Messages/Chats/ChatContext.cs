@@ -5,7 +5,7 @@ namespace GhostNetwork.Messages.Chats;
 
 public class ChatContext
 {
-    public ChatContext(string name, List<Guid> users)
+    public ChatContext(string name, List<UserInfo> users)
     {
         Name = name;
         Users = users;
@@ -13,5 +13,5 @@ public class ChatContext
 
     public string Name { get; set; }
 
-    public List<Guid> Users { get; set; }
+    public List<UserInfo> Users { get; set; }
 }

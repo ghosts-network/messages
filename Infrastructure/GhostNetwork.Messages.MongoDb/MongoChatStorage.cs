@@ -40,7 +40,7 @@ namespace GhostNetwork.Messages.MongoDb
             return entity is null ? null : ToDomain(entity);
         }
 
-        public async Task<Guid> CreatAsync(Chat chat)
+        public async Task<Chat> CreatAsync(Chat chat)
         {
             var entity = new ChatEntity()
             {
@@ -56,7 +56,7 @@ namespace GhostNetwork.Messages.MongoDb
 
             await context.Chat.InsertOneAsync(entity);
 
-            return entity.Id;
+            return ToDomain(entity);
         }
 
         public async Task UpdateAsync(Chat chat)

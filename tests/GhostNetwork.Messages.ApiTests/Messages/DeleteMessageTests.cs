@@ -34,7 +34,7 @@ public class DeleteMessageTests
         });
 
         // Act
-        var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
+        var response = await client.DeleteAsync($"/chats/messages/{messageId}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);

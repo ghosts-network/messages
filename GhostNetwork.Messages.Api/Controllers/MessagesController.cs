@@ -53,7 +53,7 @@ public class MessagesController : ControllerBase
     /// <param name="messageId">Message id</param>
     /// <response code="200">Message</response>
     /// <response code="404">Message is not found</response>
-    [HttpGet("{messageId}")]
+    [HttpGet("messages/{messageId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Message>> GetByIdAsync([FromRoute] string messageId)
@@ -73,10 +73,10 @@ public class MessagesController : ControllerBase
     /// </summary>
     /// <param name="chatId">Chat identifier</param>
     /// <param name="model">message model</param>
-    /// <response code="200">New message</response>
+    /// <response code="201">New message</response>
     /// <response code="400">Problem details</response>
     [HttpPost("{chatId:guid}/messages")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Message>> SendAsync(
         [FromRoute] Guid chatId,

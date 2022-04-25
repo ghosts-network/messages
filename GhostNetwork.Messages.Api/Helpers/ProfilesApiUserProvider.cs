@@ -41,21 +41,24 @@ public class ProfilesApiUserProvider : IUserProvider
 
     public async Task<IEnumerable<UserInfo>> SearchAsync(List<string> ids)
     {
-        var userIds = new List<Guid>();
+        var usersIds = new List<Guid>();
 
         foreach (var id in ids)
         {
-            if (!Guid.TryParse(id, out var guid))
+            if (Guid.TryParse(id, out var guid))
             {
-                return null;
+                usersIds.Add(guid);
             }
+        }
 
-            userIds.Add(guid);
+        if (!usersIds.Any())
+        {
+            return null;
         }
 
         try
         {
-            var result = await profilesApi.SearchByIdsAsync(new ProfilesQueryModel(userIds));
+            var result = await profilesApi.SearchByIdsAsync(new ProfilesQueryModel(usersIds));
 
             if (result.Any())
             {

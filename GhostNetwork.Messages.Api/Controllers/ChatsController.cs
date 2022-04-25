@@ -80,6 +80,11 @@ public class ChatsController : ControllerBase
     {
         var participants = await userProvider.SearchAsync(model.Participants);
 
+        if (participants is null)
+        {
+            return NotFound();
+        }
+
         var (result, chat) = await chatService.CreateAsync(model.Name, participants.ToList());
 
         if (result.Successed)
@@ -103,6 +108,11 @@ public class ChatsController : ControllerBase
     public async Task<ActionResult> UpdateAsync([FromRoute] Guid chatId, [FromBody] UpdateChatModel model)
     {
         var participants = await userProvider.SearchAsync(model.Participants);
+
+        if (participants is null)
+        {
+            return NotFound();
+        }
 
         var result = await chatService.UpdateAsync(chatId, model.Name, participants.ToList());
 

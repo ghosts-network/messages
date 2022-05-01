@@ -71,4 +71,31 @@ public class PostMessageTests
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Test]
+    public async Task SendMessage_ChatNotFound_BadRequest()
+    {
+        // Arrange
+        var model = new CreateMessageModel("id", "message");
+        var invalidChatId = Guid.NewGuid();
+
+        var userMock = new Mock<IUserProvider>();
+        var serviceMock = new Mock<IMessagesService>();
+
+        serviceMock
+            .Setup(x => x.SendAsync(invalidChatId, It.IsAny<UserInfo>(), model.Message))
+            .ReturnsAsync((DomainResult.Success(), default));
+
+        var client = TestServerHelper.New(collection =>
+        {
+            collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => userMock.Object);
+        });
+
+        // Act
+        var response = await client.PostAsync($"/chats/{invalidChatId}/messages", model.AsJsonContent());
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

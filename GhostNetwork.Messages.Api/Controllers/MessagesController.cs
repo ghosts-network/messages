@@ -17,13 +17,11 @@ public class MessagesController : ControllerBase
 {
     private readonly IMessagesService messageService;
     private readonly IUserProvider userProvider;
-    private readonly IChatsService chatsService;
 
-    public MessagesController(IMessagesService messageService, IUserProvider userProvider, IChatsService chatsService)
+    public MessagesController(IMessagesService messageService, IUserProvider userProvider)
     {
         this.messageService = messageService;
         this.userProvider = userProvider;
-        this.chatsService = chatsService;
     }
 
     /// <summary>
@@ -87,13 +85,6 @@ public class MessagesController : ControllerBase
         [FromRoute] Guid chatId,
         [FromBody, Required] CreateMessageModel model)
     {
-        var chat = await chatsService.GetByIdAsync(chatId);
-
-        if (chat is null)
-        {
-            return NotFound();
-        }
-
         var author = await userProvider.GetByIdAsync(model.SenderId);
 
         if (author is null)

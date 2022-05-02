@@ -18,15 +18,15 @@ public class GetChatTests
         // Arrange
         var chat = Chats.Chat.NewChat("Test", new List<UserInfo>());
 
-        var serviceMock = new Mock<IChatsService>();
+        var chatsServiceMock = new Mock<IChatsService>();
 
-        serviceMock
+        chatsServiceMock
             .Setup(x => x.GetByIdAsync(chat.Id))
             .ReturnsAsync(chat);
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => chatsServiceMock.Object);
         });
 
         // Act
@@ -49,15 +49,15 @@ public class GetChatTests
             new Chats.Chat(default, default, default)
         };
 
-        var serviceMock = new Mock<IChatsService>();
+        var chatsServiceMock = new Mock<IChatsService>();
 
-        serviceMock
+        chatsServiceMock
             .Setup(x => x.SearchAsync(skip, take, userId))
             .ReturnsAsync((users, users.Length));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => chatsServiceMock.Object);
         });
 
         // Act

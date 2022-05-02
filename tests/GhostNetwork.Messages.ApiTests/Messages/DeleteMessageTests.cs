@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -20,17 +21,17 @@ public class DeleteMessageTests
 
         var message = new Message(messageId, chatId, It.IsAny<UserInfo>(), DateTimeOffset.Now, false, "some");
 
-        var userMock = new Mock<IUserProvider>();
-        var serviceMock = new Mock<IMessagesService>();
+        var userServiceMock = new Mock<IUserProvider>();
+        var messagesServiceMock = new Mock<IMessagesService>();
 
-        serviceMock
+        messagesServiceMock
             .Setup(x => x.GetByIdAsync(messageId))
             .ReturnsAsync(message);
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => userMock.Object);
+            collection.AddScoped(_ => messagesServiceMock.Object);
+            collection.AddScoped(_ => userServiceMock.Object);
         });
 
         // Act
@@ -48,15 +49,15 @@ public class DeleteMessageTests
         var messageId = Guid.NewGuid().ToString();
 
         var userMock = new Mock<IUserProvider>();
-        var serviceMock = new Mock<IMessagesService>();
+        var messagesServiceMock = new Mock<IMessagesService>();
 
-        serviceMock
+        messagesServiceMock
             .Setup(x => x.GetByIdAsync(messageId))
             .ReturnsAsync(default(Message));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => messagesServiceMock.Object);
             collection.AddScoped(_ => userMock.Object);
         });
 

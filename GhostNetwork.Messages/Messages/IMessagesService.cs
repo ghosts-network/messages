@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domain;
+using GhostNetwork.Messages.Chats;
 
 namespace GhostNetwork.Messages.Messages;
 
@@ -21,11 +22,13 @@ public interface IMessagesService
 public class MessagesService : IMessagesService
 {
     private readonly IMessagesStorage messageStorage;
+    private readonly IChatsService chatsService;
     private readonly IValidator<MessageContext> validator;
 
-    public MessagesService(IMessagesStorage messageStorage, IValidator<MessageContext> validator)
+    public MessagesService(IMessagesStorage messageStorage, IValidator<MessageContext> validator, IChatsService chatsService)
     {
         this.messageStorage = messageStorage;
+        this.chatsService = chatsService;
         this.validator = validator;
     }
 
@@ -41,6 +44,13 @@ public class MessagesService : IMessagesService
 
     public async Task<(DomainResult, string)> SendAsync(Guid chatId, UserInfo author, string data)
     {
+        var chat = await chatsService.GetByIdAsync(chatId);
+
+        if (chat is null)
+        {
+            return (DomainResult.Error("Chat is not found"), default);
+        }
+
         var participantsCheck = await messageStorage.ParticipantsCheckAsync(author.Id);
 
         if (!participantsCheck)

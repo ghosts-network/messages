@@ -20,16 +20,16 @@ public class DeleteChatTests
 
         var chat = new Chats.Chat(chatId, "Name", It.IsAny<IEnumerable<UserInfo>>());
 
-        var chatServiceMock = new Mock<IChatsService>();
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
 
-        chatServiceMock
+        chatsServiceMock
             .Setup(x => x.GetByIdAsync(chatId))
             .ReturnsAsync(chat);
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => chatServiceMock.Object);
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
 
@@ -46,16 +46,16 @@ public class DeleteChatTests
         // Arrange
         var chatId = Guid.NewGuid();
 
-        var chatServiceMock = new Mock<IChatsService>();
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
 
-        chatServiceMock
+        chatsServiceMock
             .Setup(x => x.GetByIdAsync(chatId))
             .ReturnsAsync(default(Chats.Chat));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => chatServiceMock.Object);
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
 

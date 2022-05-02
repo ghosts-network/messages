@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Domain;
@@ -25,24 +24,24 @@ public class PutChatTests
         var participants = new List<UserInfo>() { new(participantId, "UserId", null) };
         var chat = new Chats.Chat(chatId, model.Name, It.IsAny<List<UserInfo>>());
 
-        var chatServiceMock = new Mock<IChatsService>();
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
 
         userServiceMock
             .Setup(x => x.SearchAsync(model.Participants))
             .ReturnsAsync(participants);
 
-        chatServiceMock
+        chatsServiceMock
             .Setup(x => x.UpdateAsync(chatId, model.Name, participants))
             .ReturnsAsync(DomainResult.Success());
 
-        chatServiceMock
+        chatsServiceMock
             .Setup(x => x.GetByIdAsync(chatId))
             .ReturnsAsync(chat);
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => chatServiceMock.Object);
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
 
@@ -62,20 +61,20 @@ public class PutChatTests
         var model = new UpdateChatModel(null, new List<string> { participantId.ToString() });
         var participants = new List<UserInfo>() { new(participantId, "UserId", null) };
 
-        var chatServiceMock = new Mock<IChatsService>();
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
 
         userServiceMock
             .Setup(x => x.SearchAsync(model.Participants))
             .ReturnsAsync(participants);
 
-        chatServiceMock
+        chatsServiceMock
             .Setup(x => x.UpdateAsync(chatId, model.Name, participants))
             .ReturnsAsync(DomainResult.Error("Err"));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => chatServiceMock.Object);
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
 
@@ -94,20 +93,20 @@ public class PutChatTests
         var model = new UpdateChatModel("Name", new List<string>());
         var participants = new List<UserInfo>();
 
-        var chatServiceMock = new Mock<IChatsService>();
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
 
         userServiceMock
             .Setup(x => x.SearchAsync(model.Participants))
             .ReturnsAsync(participants);
 
-        chatServiceMock
+        chatsServiceMock
             .Setup(x => x.UpdateAsync(chatId, model.Name, participants))
             .ReturnsAsync(DomainResult.Error("Err"));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => chatServiceMock.Object);
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
 
@@ -127,20 +126,20 @@ public class PutChatTests
         var model = new UpdateChatModel("Name", null);
         var participants = new List<UserInfo>() { new(participantId, "UserId", null) };
 
-        var chatServiceMock = new Mock<IChatsService>();
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
 
         userServiceMock
             .Setup(x => x.SearchAsync(model.Participants))
             .ReturnsAsync(participants);
 
-        chatServiceMock
+        chatsServiceMock
             .Setup(x => x.UpdateAsync(chatId, model.Name, participants))
             .ReturnsAsync(DomainResult.Error("Err"));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => chatServiceMock.Object);
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
 

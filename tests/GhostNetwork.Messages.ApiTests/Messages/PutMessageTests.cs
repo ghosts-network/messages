@@ -46,24 +46,24 @@ public class PutMessageTests
     }
 
     [Test]
-    public async Task UpdateMessage_NotFound()
+    public async Task UpdateMessage_Author_NotFound()
     {
         // Arrange
-        var model = new UpdateMessageModel(Guid.NewGuid(), It.IsAny<string>());
+        var model = new UpdateMessageModel(Guid.NewGuid(), "Message");
         var chatId = Guid.NewGuid();
         var message = new Message("some_id", chatId, new UserInfo(model.SenderId, It.IsAny<string>(), It.IsAny<string>()), DateTimeOffset.Now, false, model.Message);
 
-        var userMock = new Mock<IUserProvider>();
-        var serviceMock = new Mock<IMessagesService>();
+        var userServiceMock = new Mock<IUserProvider>();
+        var messageServiceMock = new Mock<IMessagesService>();
 
-        serviceMock
-            .Setup(x => x.UpdateAsync(message.Id, model.Message, model.SenderId))
-            .ReturnsAsync(DomainResult.Error(string.Empty));
+        userServiceMock
+            .Setup(x => x.GetByIdAsync(model.SenderId.ToString()))
+            .ReturnsAsync(default(UserInfo));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => userMock.Object);
+            collection.AddScoped(_ => messageServiceMock.Object);
+            collection.AddScoped(_ => userServiceMock.Object);
         });
 
         // Act
@@ -74,35 +74,38 @@ public class PutMessageTests
     }
 
     [Test]
-    public async Task UpdateMessage_BadRequest()
+    public async Task UpdateMessage_NullMessage_BadRequest()
     {
         // Arrange
-        var model = new UpdateMessageModel(Guid.NewGuid(), It.IsAny<string>());
+        var model = new UpdateMessageModel(Guid.NewGuid(), null);
         var chatId = Guid.NewGuid();
-        var moqAuthor = Guid.NewGuid();
-        var message = new Message("some_id", chatId, new UserInfo(model.SenderId, It.IsAny<string>(), It.IsAny<string>()), DateTimeOffset.Now, false, model.Message);
+        var message = new Message(Guid.NewGuid().ToString(), chatId, new UserInfo(model.SenderId, "Name", null), DateTimeOffset.Now, false, model.Message);
 
-        var userMock = new Mock<IUserProvider>();
-        var serviceMock = new Mock<IMessagesService>();
+        var userServiceMock = new Mock<IUserProvider>();
+        var messageServiceMock = new Mock<IMessagesService>();
 
-        serviceMock
-            .Setup(x => x.UpdateAsync(message.Id, model.Message, moqAuthor))
-            .ReturnsAsync(DomainResult.Success);
+        userServiceMock
+            .Setup(x => x.GetByIdAsync(model.SenderId.ToString()))
+            .ReturnsAsync(new UserInfo(model.SenderId, "Name", null));
 
-        serviceMock
+        messageServiceMock
+            .Setup(x => x.UpdateAsync(message.Id, model.Message, model.SenderId))
+            .ReturnsAsync(DomainResult.Error("Null message"));
+
+        messageServiceMock
             .Setup(x => x.GetByIdAsync(message.Id))
-            .ReturnsAsync(default(Message));
+            .ReturnsAsync(message);
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => userMock.Object);
+            collection.AddScoped(_ => messageServiceMock.Object);
+            collection.AddScoped(_ => userServiceMock.Object);
         });
 
         // Act
         var response = await client.PutAsync($"/chats/messages/{message.Id}", model.AsJsonContent());
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

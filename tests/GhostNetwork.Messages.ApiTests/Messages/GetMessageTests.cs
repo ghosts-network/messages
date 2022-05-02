@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -28,15 +29,15 @@ public class GetMessageTests
         };
 
         var userMock = new Mock<IUserProvider>();
-        var serviceMock = new Mock<IMessagesService>();
+        var messagesServiceMock = new Mock<IMessagesService>();
 
-        serviceMock
+        messagesServiceMock
             .Setup(x => x.SearchAsync(id, take, chatId))
             .ReturnsAsync((messages, messages.Count, messages[^1].Id));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => serviceMock.Object);
+            collection.AddScoped(_ => messagesServiceMock.Object);
             collection.AddScoped(_ => userMock.Object);
         });
 

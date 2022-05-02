@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Api.Helpers;
+using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Messages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,13 @@ public class MessagesController : ControllerBase
 {
     private readonly IMessagesService messageService;
     private readonly IUserProvider userProvider;
+    private readonly IChatsService chatsService;
 
-    public MessagesController(IMessagesService messageService, IUserProvider userProvider)
+    public MessagesController(IMessagesService messageService, IUserProvider userProvider, IChatsService chatsService)
     {
         this.messageService = messageService;
         this.userProvider = userProvider;
+        this.chatsService = chatsService;
     }
 
     /// <summary>
@@ -75,14 +78,29 @@ public class MessagesController : ControllerBase
     /// <param name="model">message model</param>
     /// <response code="201">New message</response>
     /// <response code="400">Problem details</response>
+    /// <response code="400">Author profile or chat is not found</response>
     [HttpPost("{chatId:guid}/messages")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Message>> SendAsync(
         [FromRoute] Guid chatId,
-        [FromBody] CreateMessageModel model)
+        [FromBody, Required] CreateMessageModel model)
     {
+        var chat = await chatsService.GetByIdAsync(chatId);
+
+        if (chat is null)
+        {
+            return NotFound();
+        }
+
         var author = await userProvider.GetByIdAsync(model.SenderId);
+
+        if (author is null)
+        {
+            return NotFound();
+        }
+
         var (result, id) = await messageService.SendAsync(chatId, author, model.Message);
 
         if (!result.Successed)
@@ -107,7 +125,7 @@ public class MessagesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UpdateAsync(
         [FromRoute] string messageId,
-        [FromBody] UpdateMessageModel model)
+        [FromBody, Required] UpdateMessageModel model)
     {
         var message = await messageService.GetByIdAsync(messageId);
 
@@ -151,6 +169,6 @@ public class MessagesController : ControllerBase
     }
 }
 
-public record CreateMessageModel(string SenderId, string Message);
+public record CreateMessageModel([Required] string SenderId, [Required] string Message);
 
-public record UpdateMessageModel(Guid SenderId, string Message);
+public record UpdateMessageModel([Required] Guid SenderId, [Required] string Message);

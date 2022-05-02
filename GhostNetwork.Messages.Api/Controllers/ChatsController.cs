@@ -73,14 +73,16 @@ public class ChatsController : ControllerBase
     /// <param name="model">Create chat model</param>
     /// <response code="201">Connection successfully created</response>
     /// <response code="400">Problem details</response>
+    /// <response code="404">Participants is not found</response>
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPost]
     public async Task<ActionResult<Chat>> CreateNewChatAsync([FromBody] CreateChatModel model)
     {
         var participants = await userProvider.SearchAsync(model.Participants);
 
-        if (participants is null)
+        if (!participants.Any())
         {
             return NotFound();
         }
@@ -102,14 +104,16 @@ public class ChatsController : ControllerBase
     /// <param name="model">Update chat model</param>
     /// <response code="204">Chat successfully updated</response>
     /// <response code="400">Problem details</response>
+    /// <response code="404">Participants is not found</response>
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPut("{chatId:guid}")]
     public async Task<ActionResult> UpdateAsync([FromRoute] Guid chatId, [FromBody] UpdateChatModel model)
     {
         var participants = await userProvider.SearchAsync(model.Participants);
 
-        if (participants is null)
+        if (!participants.Any())
         {
             return NotFound();
         }
@@ -148,6 +152,7 @@ public class ChatsController : ControllerBase
     }
 }
 
-public record CreateChatModel(string Name, List<string> Participants);
 
-public record UpdateChatModel(string Name, List<string> Participants);
+public record CreateChatModel([Required] string Name, [Required] List<string> Participants);
+
+public record UpdateChatModel([Required] string Name, [Required] List<string> Participants);

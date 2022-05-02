@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -7,16 +6,19 @@ using System.Threading.Tasks;
 using GhostNetwork.Profiles.Api;
 using GhostNetwork.Profiles.Client;
 using GhostNetwork.Profiles.Model;
+using Microsoft.Extensions.Logging;
 
 namespace GhostNetwork.Messages.Api.Helpers;
 
 public class ProfilesApiUserProvider : IUserProvider
 {
     private readonly IProfilesApi profilesApi;
+    private readonly ILogger logger;
 
-    public ProfilesApiUserProvider(IProfilesApi profilesApi)
+    public ProfilesApiUserProvider(IProfilesApi profilesApi, ILogger<ProfilesApiUserProvider> logger)
     {
         this.profilesApi = profilesApi;
+        this.logger = logger;
     }
 
     public async Task<UserInfo> GetByIdAsync(string id)
@@ -35,11 +37,12 @@ public class ProfilesApiUserProvider : IUserProvider
         }
         catch (ApiException ex) when (ex.ErrorCode == (int)HttpStatusCode.NotFound)
         {
+            logger.LogError("Method GetByIdAsync trowed new exception: {ex}", ex);
             return null;
         }
     }
 
-    public async Task<IEnumerable<UserInfo>> SearchAsync(List<string> ids)
+    public async Task<List<UserInfo>> SearchAsync(List<string> ids)
     {
         var usersIds = new List<Guid>();
 
@@ -53,7 +56,7 @@ public class ProfilesApiUserProvider : IUserProvider
 
         if (!usersIds.Any())
         {
-            return null;
+            return default;
         }
 
         try
@@ -62,12 +65,12 @@ public class ProfilesApiUserProvider : IUserProvider
 
             if (result.Any())
             {
-                return result.Select(x => new UserInfo(x.Id, $"{x.FirstName} {x.LastName}", x.ProfilePicture));
+                return result.Select(x => new UserInfo(x.Id, $"{x.FirstName} {x.LastName}", x.ProfilePicture)).ToList();
             }
         }
         catch (ApiException ex) when (ex.ErrorCode == (int)HttpStatusCode.NotFound)
         {
-            Console.WriteLine(ex);
+            logger.LogError("Method SearchAsync trowed new exception: {ex}", ex);
             return null;
         }
 

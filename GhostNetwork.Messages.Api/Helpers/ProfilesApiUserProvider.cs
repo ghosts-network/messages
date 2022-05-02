@@ -37,12 +37,12 @@ public class ProfilesApiUserProvider : IUserProvider
         }
         catch (ApiException ex) when (ex.ErrorCode == (int)HttpStatusCode.NotFound)
         {
-            logger.LogError("Method GetByIdAsync trowed new exception: {ex}", ex);
+            logger.LogInformation("Method GetByIdAsync trowed new exception: {ex}", ex);
             return null;
         }
     }
 
-    public async Task<List<UserInfo>> SearchAsync(List<string> ids)
+    public async Task<IEnumerable<UserInfo>> SearchAsync(List<string> ids)
     {
         var usersIds = new List<Guid>();
 
@@ -56,24 +56,19 @@ public class ProfilesApiUserProvider : IUserProvider
 
         if (!usersIds.Any())
         {
-            return default;
+            return Enumerable.Empty<UserInfo>();
         }
 
         try
         {
-            var result = await profilesApi.SearchByIdsAsync(new ProfilesQueryModel(usersIds));
+            var profiles = await profilesApi.SearchByIdsAsync(new ProfilesQueryModel(usersIds));
 
-            if (result.Any())
-            {
-                return result.Select(x => new UserInfo(x.Id, $"{x.FirstName} {x.LastName}", x.ProfilePicture)).ToList();
-            }
+            return profiles.Any() ? profiles.Select(x => new UserInfo(x.Id, $"{x.FirstName} {x.LastName}", x.ProfilePicture)).ToList() : Enumerable.Empty<UserInfo>();
         }
         catch (ApiException ex) when (ex.ErrorCode == (int)HttpStatusCode.NotFound)
         {
-            logger.LogError("Method SearchAsync trowed new exception: {ex}", ex);
-            return null;
+            logger.LogInformation("Method SearchAsync trowed new exception: {ex}", ex);
+            return Enumerable.Empty<UserInfo>();
         }
-
-        return null;
     }
 }

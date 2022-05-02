@@ -82,12 +82,13 @@ public class ChatsController : ControllerBase
     {
         var participants = await userProvider.SearchAsync(model.Participants);
 
-        if (!participants.Any())
+        var userInfos = participants.ToList();
+        if (!userInfos.Any())
         {
             return NotFound();
         }
 
-        var (result, chat) = await chatService.CreateAsync(model.Name, participants.ToList());
+        var (result, chat) = await chatService.CreateAsync(model.Name, userInfos);
 
         if (result.Successed)
         {
@@ -113,12 +114,13 @@ public class ChatsController : ControllerBase
     {
         var participants = await userProvider.SearchAsync(model.Participants);
 
-        if (!participants.Any())
+        var userInfos = participants.ToList();
+        if (!userInfos.Any())
         {
             return NotFound();
         }
 
-        var result = await chatService.UpdateAsync(chatId, model.Name, participants.ToList());
+        var result = await chatService.UpdateAsync(chatId, model.Name, userInfos);
 
         if (!result.Successed)
         {
@@ -151,7 +153,6 @@ public class ChatsController : ControllerBase
         return NoContent();
     }
 }
-
 
 public record CreateChatModel([Required] string Name, [Required] List<string> Participants);
 

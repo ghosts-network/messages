@@ -8,5 +8,5 @@ public interface IUserProvider
 {
     Task<UserInfo> GetByIdAsync(string id);
 
-    Task<List<UserInfo>> SearchAsync(List<string> ids);
+    Task<IEnumerable<UserInfo>> SearchAsync(List<string> ids);
 }

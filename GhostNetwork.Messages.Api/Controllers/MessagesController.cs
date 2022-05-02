@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Api.Helpers;
-using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Messages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

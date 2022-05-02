@@ -7,6 +7,7 @@ using GhostNetwork.Messages.MongoDb;
 using GhostNetwork.Profiles.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -30,7 +31,10 @@ namespace GhostNetwork.Messages.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSignalR();
+            services.AddHttpLogging(x =>
+            {
+                x.LoggingFields = HttpLoggingFields.All;
+            });
 
             services.AddSwaggerGen(options =>
             {
@@ -72,6 +76,7 @@ namespace GhostNetwork.Messages.Api
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseHttpLogging();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

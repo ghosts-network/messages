@@ -32,7 +32,7 @@ export default function() {
             let request = http.get(url);
 
             check(request, {
-                "Chat messages": (r) => r.status === 200
+                "Messages": (r) => r.status === 200
             });
 
             sleep(SLEEP_DURATION);
@@ -47,7 +47,7 @@ export default function() {
             let request = http.post(url, JSON.stringify(body), params);
 
             check(request, {
-                "New message": (r) => r.status === 200
+                "New message": (r) => r.status === 201
             });
         }
     });
@@ -59,13 +59,13 @@ export default function() {
         // Request No. 1
         {
             let url = BASE_URL + `/chats/${chatId}/messages/${messageId}`;
-            let request = http.del(url);
+            // TODO: edit the parameters of the request body.
+            let body = {"senderId": "uuid", "message": "string"};
+            let params = {headers: {"Content-Type": "application/json", "Accept": "application/json"}};
+            let request = http.put(url, JSON.stringify(body), params);
 
             check(request, {
-                "Success": (r) => r.status === 200
-            });
-            check(request, {
-                "Message successfully deleted": (r) => r.status === 204
+                "Successfully updated": (r) => r.status === 204
             });
         }
     });
@@ -110,7 +110,7 @@ export default function() {
             let request = http.get(url);
 
             check(request, {
-                "Exist chats": (r) => r.status === 200
+                "Exist user chats": (r) => r.status === 200
             });
         }
     });
@@ -121,13 +121,22 @@ export default function() {
         // Request No. 1
         {
             let url = BASE_URL + `/chats/messages/${messageId}`;
-            // TODO: edit the parameters of the request body.
-            let body = {"senderId": "uuid", "message": "string"};
-            let params = {headers: {"Content-Type": "application/json", "Accept": "application/json"}};
-            let request = http.put(url, JSON.stringify(body), params);
+            let request = http.get(url);
 
             check(request, {
-                "Successfully updated": (r) => r.status === 204
+                "Message": (r) => r.status === 200
+            });
+
+            sleep(SLEEP_DURATION);
+        }
+
+        // Request No. 2
+        {
+            let url = BASE_URL + `/chats/messages/${messageId}`;
+            let request = http.del(url);
+
+            check(request, {
+                "Message successfully deleted": (r) => r.status === 204
             });
         }
     });
@@ -143,7 +152,7 @@ export default function() {
             let request = http.post(url, JSON.stringify(body), params);
 
             check(request, {
-                "Connection successfully created": (r) => r.status === 200
+                "Connection successfully created": (r) => r.status === 201
             });
         }
     });

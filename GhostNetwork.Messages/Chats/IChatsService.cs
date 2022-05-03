@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Domain;
+using Domain.Validation;
 
 namespace GhostNetwork.Messages.Chats
 {
@@ -42,7 +42,7 @@ namespace GhostNetwork.Messages.Chats
 
         public async Task<(DomainResult, Chat)> CreateAsync(string name, List<UserInfo> participants)
         {
-            var result = validator.Validate(new ChatContext(name, participants));
+            var result = await validator.ValidateAsync(new ChatContext(name, participants));
 
             if (!result.Successed)
             {
@@ -58,7 +58,7 @@ namespace GhostNetwork.Messages.Chats
 
         public async Task<DomainResult> UpdateAsync(Guid id, string name, List<UserInfo> participants)
         {
-            var result = validator.Validate(new ChatContext(name, participants));
+            var result = await validator.ValidateAsync(new ChatContext(name, participants));
 
             if (!result.Successed)
             {
@@ -66,6 +66,12 @@ namespace GhostNetwork.Messages.Chats
             }
 
             var chat = await chatStorage.GetByIdAsync(id);
+
+            if (chat is null)
+            {
+                return DomainResult.Error("Chat is not found");
+            }
+
             chat.Update(name, participants);
 
             await chatStorage.UpdateAsync(chat);

@@ -10,8 +10,6 @@ public interface IMessagesStorage
 
     Task<Message> GetByIdAsync(string id);
 
-    Task<bool> ParticipantsCheckAsync(Guid userId);
-
     Task<string> SendAsync(Message message);
 
     Task DeleteAsync(string id);

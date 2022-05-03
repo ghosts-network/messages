@@ -25,7 +25,7 @@ public class PutMessageTests
         var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
-            .Setup(x => x.UpdateAsync(message.Id, model.Message, model.SenderId))
+            .Setup(x => x.UpdateAsync(message.Id, chatId, model.Message, model.SenderId))
             .ReturnsAsync(DomainResult.Success);
 
         serviceMock
@@ -39,7 +39,7 @@ public class PutMessageTests
         });
 
         // Act
-        var response = await client.PutAsync($"/chats/messages/{message.Id}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chatId}/messages/{message.Id}", model.AsJsonContent());
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
@@ -67,7 +67,7 @@ public class PutMessageTests
         });
 
         // Act
-        var response = await client.PutAsync($"/chats/messages/{message.Id}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chatId}/messages/{message.Id}", model.AsJsonContent());
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
@@ -89,7 +89,7 @@ public class PutMessageTests
             .ReturnsAsync(new UserInfo(model.SenderId, "Name", null));
 
         messageServiceMock
-            .Setup(x => x.UpdateAsync(message.Id, model.Message, model.SenderId))
+            .Setup(x => x.UpdateAsync(message.Id, chatId, model.Message, model.SenderId))
             .ReturnsAsync(DomainResult.Error("Null message"));
 
         messageServiceMock
@@ -103,7 +103,7 @@ public class PutMessageTests
         });
 
         // Act
-        var response = await client.PutAsync($"/chats/messages/{message.Id}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chatId}/messages/{message.Id}", model.AsJsonContent());
 
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);

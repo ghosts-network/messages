@@ -55,15 +55,6 @@ public class MongoMessageStorage : IMessagesStorage
         return entity is null ? null : ToDomain(entity);
     }
 
-    public async Task<bool> ParticipantsCheckAsync(Guid userId)
-    {
-        var filter = Builders<ChatEntity>.Filter.Where(p => p.Participants.Any(x => x.Id == userId));
-
-        var entity = await context.Chat.Find(filter).FirstOrDefaultAsync();
-
-        return entity is not null;
-    }
-
     public async Task<string> SendAsync(Message message)
     {
         var entity = new MessageEntity()

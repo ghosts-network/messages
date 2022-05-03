@@ -1,4 +1,5 @@
 using System;
+using Domain.Validation;
 using GhostNetwork.Messages.Api.Helpers;
 using GhostNetwork.Messages.Api.Helpers.OpenApi;
 using GhostNetwork.Messages.Chats;
@@ -7,10 +8,10 @@ using GhostNetwork.Messages.MongoDb;
 using GhostNetwork.Profiles.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using Swashbuckle.AspNetCore.Filters;
@@ -31,9 +32,11 @@ namespace GhostNetwork.Messages.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddHttpLogging(x =>
+
+            services.AddLogging(x =>
             {
-                x.LoggingFields = HttpLoggingFields.All;
+                x.ClearProviders();
+                x.AddConsole();
             });
 
             services.AddSwaggerGen(options =>
@@ -76,7 +79,6 @@ namespace GhostNetwork.Messages.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpLogging();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

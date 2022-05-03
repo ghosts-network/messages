@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Domain;
+using Domain.Validation;
 using GhostNetwork.Messages.Chats;
 
 namespace GhostNetwork.Messages.Messages;
@@ -12,11 +14,11 @@ public interface IMessagesService
 
     Task<Message> GetByIdAsync(string id);
 
-    Task<(DomainResult, string)> SendAsync(Guid chatId, UserInfo author, string data);
+    Task<(DomainResult, string)> SendAsync(Guid chatId, UserInfo author, string message);
 
     Task DeleteAsync(string id);
 
-    Task<DomainResult> UpdateAsync(string id, string data, Guid userId);
+    Task<DomainResult> UpdateAsync(string messageId, Guid chatId, string message, Guid userId);
 }
 
 public class MessagesService : IMessagesService
@@ -42,7 +44,7 @@ public class MessagesService : IMessagesService
         return await messageStorage.GetByIdAsync(id);
     }
 
-    public async Task<(DomainResult, string)> SendAsync(Guid chatId, UserInfo author, string data)
+    public async Task<(DomainResult, string)> SendAsync(Guid chatId, UserInfo author, string message)
     {
         var chat = await chatsService.GetByIdAsync(chatId);
 
@@ -51,21 +53,14 @@ public class MessagesService : IMessagesService
             return (DomainResult.Error("Chat is not found"), default);
         }
 
-        var participantsCheck = await messageStorage.ParticipantsCheckAsync(author.Id);
-
-        if (!participantsCheck)
-        {
-            return (DomainResult.Error("You are not a member of this chat!"), default);
-        }
-
-        var newMessage = Message.NewMessage(chatId, author, data);
-
-        var result = validator.Validate(new MessageContext(data));
+        var result = await validator.ValidateAsync(new MessageContext(message, author.Id, chat.Participants.Select(x => x.Id)));
 
         if (!result.Successed)
         {
             return (result, default);
         }
+
+        var newMessage = Message.NewMessage(chatId, author, message);
 
         var id = await messageStorage.SendAsync(newMessage);
 
@@ -77,23 +72,30 @@ public class MessagesService : IMessagesService
         await messageStorage.DeleteAsync(id);
     }
 
-    public async Task<DomainResult> UpdateAsync(string id, string data, Guid userId)
+    public async Task<DomainResult> UpdateAsync(string messageId, Guid chatId, string message, Guid userId)
     {
-        var message = await messageStorage.GetByIdAsync(id);
+        var chat = await chatsService.GetByIdAsync(chatId);
 
-        if (message.Author.Id != userId)
+        if (chat is null)
         {
-            return DomainResult.Error("You are not the author of this message");
+            return DomainResult.Error("Chat is not found");
         }
 
-        var result = validator.Validate(new MessageContext(data));
+        var result = await validator.ValidateAsync(new MessageContext(message, userId, chat.Participants.Select(x => x.Id)));
 
         if (!result.Successed)
         {
             return result;
         }
 
-        await messageStorage.UpdateAsync(id, data);
+        var existMessage = await messageStorage.GetByIdAsync(messageId);
+
+        if (existMessage.Author.Id != userId)
+        {
+            return DomainResult.Error("You are not the author of this message");
+        }
+
+        await messageStorage.UpdateAsync(messageId, message);
 
         return result;
     }

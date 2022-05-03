@@ -37,7 +37,7 @@ public class ProfilesApiUserProvider : IUserProvider
         }
         catch (ApiException ex) when (ex.ErrorCode == (int)HttpStatusCode.NotFound)
         {
-            logger.LogInformation("Method GetByIdAsync trowed new exception: {ex}", ex);
+            logger.LogError(ex, "Method GetByIdAsync trowed new exception");
             return null;
         }
     }
@@ -67,7 +67,7 @@ public class ProfilesApiUserProvider : IUserProvider
         }
         catch (ApiException ex) when (ex.ErrorCode == (int)HttpStatusCode.NotFound)
         {
-            logger.LogInformation("Method SearchAsync trowed new exception: {ex}", ex);
+            logger.LogError(ex, "Method SearchAsync trowed new exception");
             return Enumerable.Empty<UserInfo>();
         }
     }

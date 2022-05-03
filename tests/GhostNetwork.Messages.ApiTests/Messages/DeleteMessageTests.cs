@@ -45,7 +45,6 @@ public class DeleteMessageTests
     public async Task DeleteMessage_NotFound()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
         var messageId = Guid.NewGuid().ToString();
 
         var userMock = new Mock<IUserProvider>();
@@ -62,7 +61,7 @@ public class DeleteMessageTests
         });
 
         // Act
-        var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
+        var response = await client.DeleteAsync($"/chats/messages/{messageId}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);

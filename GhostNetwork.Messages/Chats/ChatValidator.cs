@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Domain;
+using Domain.Validation;
 
 namespace GhostNetwork.Messages.Chats;
 
@@ -36,5 +38,10 @@ public class ChatValidator : IValidator<ChatContext>
         }
 
         return !results.Any() ? DomainResult.Success() : DomainResult.Error(results);
+    }
+
+    public Task<DomainResult> ValidateAsync(ChatContext context)
+    {
+        return Task.FromResult(Validate(context));
     }
 }

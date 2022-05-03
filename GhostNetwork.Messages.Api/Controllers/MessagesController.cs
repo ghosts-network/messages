@@ -104,16 +104,18 @@ public class MessagesController : ControllerBase
     /// <summary>
     /// Update message
     /// </summary>
+    /// <param name="chatId">Chat id</param>
     /// <param name="messageId">Message id</param>
     /// <param name="model">Updated model</param>
     /// <response code="204">Successfully updated</response>
     /// <response code="400">Problem details</response>
     /// <response code="404">Message not found</response>
-    [HttpPut("messages/{messageId}")]
+    [HttpPut("{chatId:guid}/messages/{messageId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UpdateAsync(
+        [FromRoute] Guid chatId,
         [FromRoute] string messageId,
         [FromBody, Required] UpdateMessageModel model)
     {
@@ -124,7 +126,7 @@ public class MessagesController : ControllerBase
             return NotFound();
         }
 
-        var result = await messageService.UpdateAsync(messageId, model.Message, model.SenderId);
+        var result = await messageService.UpdateAsync(messageId, chatId, model.Message, model.SenderId);
 
         if (!result.Successed)
         {

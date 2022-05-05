@@ -16,6 +16,8 @@ public interface IChatsService
 
     Task<DomainResult> UpdateAsync(Chat chat);
 
+    Task ReorderAsync(Guid id);
+
     Task DeleteAsync(Guid id);
 }
 
@@ -50,7 +52,7 @@ public class ChatsService : IChatsService
             return (result, default);
         }
 
-        var chat = await chatStorage.CreatAsync(newChat);
+        var chat = await chatStorage.CreateAsync(newChat);
 
         return (DomainResult.Success(), chat);
     }
@@ -66,6 +68,11 @@ public class ChatsService : IChatsService
         await chatStorage.UpdateAsync(chat);
 
         return DomainResult.Success();
+    }
+
+    public Task ReorderAsync(Guid id)
+    {
+        return chatStorage.ReorderAsync(id);
     }
 
     public async Task DeleteAsync(Guid id)

@@ -17,6 +17,9 @@ public class ChatEntity
     [BsonElement("participants")]
     public IList<UserInfoEntity> Participants { get; set; }
 
+    [BsonElement("order")]
+    public long Order { get; set; }
+
     public static explicit operator Chat(ChatEntity entity)
     {
         return entity == null

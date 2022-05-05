@@ -106,6 +106,7 @@ public class MessagesController : ControllerBase
             return BadRequest(result.ToProblemDetails());
         }
 
+        await chatsService.ReorderAsync(chatId);
         return Created(Url.Action("GetById", new { id }) ?? string.Empty, await messageService.GetByIdAsync(id));
     }
 

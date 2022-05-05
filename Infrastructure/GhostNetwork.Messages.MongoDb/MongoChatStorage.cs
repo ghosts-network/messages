@@ -19,11 +19,13 @@ public class MongoChatStorage : IChatsStorage
     public async Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId)
     {
         var filter = Builders<ChatEntity>.Filter.Where(p => p.Participants.Any(x => x.Id == userId));
+        var sort = Builders<ChatEntity>.Sort.Descending(p => p.Order);
 
-        var totalCount = await context.Chat.Find(filter).CountDocumentsAsync();
+        var totalCount = await context.Chat.CountDocumentsAsync(filter);
 
         var chats = await context.Chat
             .Find(filter)
+            .Sort(sort)
             .Skip(skip)
             .Limit(take)
             .ToListAsync();
@@ -40,12 +42,13 @@ public class MongoChatStorage : IChatsStorage
         return (Chat)entity;
     }
 
-    public async Task<Chat> CreatAsync(Chat chat)
+    public async Task<Chat> CreateAsync(Chat chat)
     {
         var entity = new ChatEntity
         {
             Id = chat.Id,
             Name = chat.Name,
+            Order = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             Participants = chat.Participants.Select(x => new UserInfoEntity()
             {
                 Id = x.Id,
@@ -77,5 +80,16 @@ public class MongoChatStorage : IChatsStorage
 
         await context.Message.DeleteManyAsync(messageFilter);
         await context.Chat.DeleteOneAsync(chatFilter);
+    }
+
+    public async Task ReorderAsync(Guid id)
+    {
+        var filter = Builders<ChatEntity>.Filter
+            .Eq(p => p.Id, id);
+
+        var update = Builders<ChatEntity>.Update
+            .Set(p => p.Order, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
+        await context.Chat.UpdateOneAsync(filter, update);
     }
 }

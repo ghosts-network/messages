@@ -10,9 +10,11 @@ public interface IChatsStorage
 
     Task<Chat> GetByIdAsync(Guid id);
 
-    Task<Chat> CreatAsync(Chat chat);
+    Task<Chat> CreateAsync(Chat chat);
 
     Task UpdateAsync(Chat chat);
 
     Task DeleteAsync(Guid id);
+
+    Task ReorderAsync(Guid id);
 }

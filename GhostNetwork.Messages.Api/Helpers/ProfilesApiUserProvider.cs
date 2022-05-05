@@ -1,74 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using GhostNetwork.Profiles.Api;
 using GhostNetwork.Profiles.Client;
 using GhostNetwork.Profiles.Model;
-using Microsoft.Extensions.Logging;
 
 namespace GhostNetwork.Messages.Api.Helpers;
 
 public class ProfilesApiUserProvider : IUserProvider
 {
     private readonly IProfilesApi profilesApi;
-    private readonly ILogger logger;
 
-    public ProfilesApiUserProvider(IProfilesApi profilesApi, ILogger<ProfilesApiUserProvider> logger)
+    public ProfilesApiUserProvider(IProfilesApi profilesApi)
     {
         this.profilesApi = profilesApi;
-        this.logger = logger;
     }
 
-    public async Task<UserInfo> GetByIdAsync(string id)
+    public async Task<UserInfo> GetByIdAsync(Guid id)
     {
-        if (!Guid.TryParse(id, out var guid))
-        {
-            return null;
-        }
-
         try
         {
-            var result = await profilesApi.GetByIdAsync(guid);
+            var result = await profilesApi.GetByIdAsync(id);
             return result == null
                 ? null
                 : new UserInfo(result.Id, $"{result.FirstName} {result.LastName}", result.ProfilePicture);
         }
         catch (ApiException ex) when (ex.ErrorCode == (int)HttpStatusCode.NotFound)
         {
-            logger.LogError(ex, "Method GetByIdAsync trowed new exception");
             return null;
         }
     }
 
-    public async Task<IEnumerable<UserInfo>> SearchAsync(List<string> ids)
+    public async Task<IReadOnlyCollection<UserInfo>> SearchAsync(List<Guid> ids)
     {
-        var usersIds = new List<Guid>();
-
-        foreach (var id in ids)
+        if (!ids.Any())
         {
-            if (Guid.TryParse(id, out var guid))
-            {
-                usersIds.Add(guid);
-            }
+            return ImmutableArray<UserInfo>.Empty;
         }
 
-        if (!usersIds.Any())
-        {
-            return Enumerable.Empty<UserInfo>();
-        }
+        var profiles = await profilesApi.SearchByIdsAsync(new ProfilesQueryModel(ids));
 
-        try
-        {
-            var profiles = await profilesApi.SearchByIdsAsync(new ProfilesQueryModel(usersIds));
-
-            return profiles.Any() ? profiles.Select(x => new UserInfo(x.Id, $"{x.FirstName} {x.LastName}", x.ProfilePicture)).ToList() : Enumerable.Empty<UserInfo>();
-        }
-        catch (ApiException ex) when (ex.ErrorCode == (int)HttpStatusCode.NotFound)
-        {
-            logger.LogError(ex, "Method SearchAsync trowed new exception");
-            return Enumerable.Empty<UserInfo>();
-        }
+        return profiles
+            .Select(profile => new UserInfo(profile.Id, $"{profile.FirstName} {profile.LastName}", profile.ProfilePicture))
+            .ToArray();
     }
 }

@@ -6,7 +6,7 @@ namespace GhostNetwork.Messages;
 
 public interface IUserProvider
 {
-    Task<UserInfo> GetByIdAsync(string id);
+    Task<UserInfo> GetByIdAsync(Guid id);
 
-    Task<IEnumerable<UserInfo>> SearchAsync(List<string> ids);
+    Task<IReadOnlyCollection<UserInfo>> SearchAsync(List<Guid> ids);
 }

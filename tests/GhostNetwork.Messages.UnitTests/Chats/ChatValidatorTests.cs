@@ -4,7 +4,7 @@ using System.Linq;
 using GhostNetwork.Messages.Chats;
 using NUnit.Framework;
 
-namespace GhostNetwork.Messages.UnitTests.Chat;
+namespace GhostNetwork.Messages.UnitTests.Chats;
 
 public class ChatValidatorTests
 {
@@ -15,7 +15,7 @@ public class ChatValidatorTests
         var validator = new ChatValidator();
 
         // Act
-        var result = validator.Validate(new ChatContext(null, new List<UserInfo>() { new(Guid.NewGuid(), "Name", null) }));
+        var result = validator.Validate(new Chat(Guid.NewGuid(), "test", new List<UserInfo>() { new(Guid.NewGuid(), "Name", null) }));
 
         // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
@@ -28,7 +28,7 @@ public class ChatValidatorTests
         var validator = new ChatValidator();
 
         // Act
-        var result = validator.Validate(new ChatContext("Test", new List<UserInfo> { new(Guid.NewGuid(), "Name", null) }));
+        var result = validator.Validate(new Chat(Guid.NewGuid(), "Test", new List<UserInfo> { new(Guid.NewGuid(), "Name", null) }));
 
         // Assert
         Assert.IsTrue(result.Successed);
@@ -41,7 +41,7 @@ public class ChatValidatorTests
         var validator = new ChatValidator();
 
         // Act
-        var result = validator.Validate(new ChatContext("Test", new List<UserInfo>()));
+        var result = validator.Validate(new Chat(Guid.NewGuid(), "Test", new List<UserInfo>()));
 
         // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);
@@ -62,7 +62,7 @@ public class ChatValidatorTests
         };
 
         // Act
-        var result = validator.Validate(new ChatContext("Test", users));
+        var result = validator.Validate(new Chat(Guid.NewGuid(), "Test", users));
 
         // Assert
         Assert.IsFalse(result.Successed && result.Errors.Count() == 1);

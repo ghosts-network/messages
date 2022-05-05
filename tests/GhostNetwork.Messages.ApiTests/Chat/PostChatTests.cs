@@ -20,7 +20,7 @@ public class PostChatTests
     {
         // Arrange
         var participantId = Guid.NewGuid();
-        var model = new UpdateChatModel("Name", new List<string>() { participantId.ToString() });
+        var model = new UpdateChatModel("Name", new List<Guid> { participantId });
         var participants = new List<UserInfo>() { new UserInfo(participantId, "UserName", null) };
         var chat = Chats.Chat.NewChat(model.Name, participants);
 
@@ -56,7 +56,7 @@ public class PostChatTests
     public async Task Create_EmptyName_BadRequest()
     {
         // Arrange
-        var model = new UpdateChatModel(null, new List<string>() { Guid.NewGuid().ToString() });
+        var model = new UpdateChatModel(null, new List<Guid> { Guid.NewGuid() });
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
@@ -108,13 +108,15 @@ public class PostChatTests
 
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        var responseModel = response.Content.AsProblemDetails();
+        Assert.AreEqual("Chat should have at least one participant", responseModel.Title);
     }
 
     [Test]
     public async Task Create_EmptyParticipants_BadRequest()
     {
         // Arrange
-        var model = new UpdateChatModel("Name", new List<string>());
+        var model = new UpdateChatModel("Name", new List<Guid>());
         var participants = Enumerable.Empty<UserInfo>().ToList();
 
         var chatsServiceMock = new Mock<IChatsService>();
@@ -134,6 +136,8 @@ public class PostChatTests
         var response = await client.PostAsync("/chats/", model.AsJsonContent());
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        var responseModel = response.Content.AsProblemDetails();
+        Assert.AreEqual("Chat should have at least one participant", responseModel.Title);
     }
 }

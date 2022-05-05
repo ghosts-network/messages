@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Domain;
@@ -19,12 +18,20 @@ public class PostMessageTests
     public async Task SendMessage_Ok()
     {
         // Arrange
-        var model = new CreateMessageModel("sender_id", "message");
+        var model = new CreateMessageModel(Guid.NewGuid(), "message");
         var chatId = Guid.NewGuid();
         var message = new Message("Guid.Empty", chatId, null, DateTimeOffset.Now, false, model.Message);
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
         var messagesServiceMock = new Mock<IMessagesService>();
+
+        chatsServiceMock
+            .Setup(x => x.GetByIdAsync(chatId))
+            .ReturnsAsync(new Chats.Chat(Guid.NewGuid(), "Name", new[]
+            {
+                new UserInfo(Guid.NewGuid(), "Name", null)
+            }));
 
         userServiceMock
             .Setup(x => x.GetByIdAsync(model.SenderId))
@@ -40,6 +47,7 @@ public class PostMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => messagesServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
@@ -55,11 +63,19 @@ public class PostMessageTests
     public async Task SendMessage_NullAuthor_BadRequest()
     {
         // Arrange
-        var model = new CreateMessageModel(null, "message");
+        var model = new CreateMessageModel(Guid.Empty, "message");
         var chatId = Guid.NewGuid();
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
         var messagesServiceMock = new Mock<IMessagesService>();
+
+        chatsServiceMock
+            .Setup(x => x.GetByIdAsync(chatId))
+            .ReturnsAsync(new Chats.Chat(Guid.NewGuid(), "Name", new[]
+            {
+                new UserInfo(Guid.NewGuid(), "Name", null)
+            }));
 
         userServiceMock
             .Setup(x => x.GetByIdAsync(model.SenderId))
@@ -67,6 +83,7 @@ public class PostMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => messagesServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
@@ -76,15 +93,18 @@ public class PostMessageTests
 
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        var responseModel = response.Content.AsProblemDetails();
+        Assert.AreEqual("Author is not found", responseModel.Title);
     }
 
     [Test]
     public async Task SendMessage_NullMessage_BadRequest()
     {
         // Arrange
-        var model = new CreateMessageModel("id", null);
+        var model = new CreateMessageModel(Guid.NewGuid(), null);
         var chatId = Guid.NewGuid();
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
         var messagesServiceMock = new Mock<IMessagesService>();
 
@@ -98,6 +118,7 @@ public class PostMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => messagesServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
@@ -113,9 +134,10 @@ public class PostMessageTests
     public async Task SendMessage_ChatNotFound_BadRequest()
     {
         // Arrange
-        var model = new CreateMessageModel("id", "message");
+        var model = new CreateMessageModel(Guid.NewGuid(), "message");
         var invalidChatId = Guid.NewGuid();
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
@@ -125,6 +147,7 @@ public class PostMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => serviceMock.Object);
             collection.AddScoped(_ => userMock.Object);
         });

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domain;
 using Domain.Validation;
-using GhostNetwork.Messages.Chats;
 
 namespace GhostNetwork.Messages.Messages;
 
@@ -15,6 +14,11 @@ public class MessageValidator : IValidator<MessageContext>
         var resul = Validate(param.Message, param.AuthorId, param.Participants);
 
         return resul;
+    }
+
+    public Task<DomainResult> ValidateAsync(MessageContext context)
+    {
+        return Task.FromResult(Validate(context));
     }
 
     private DomainResult Validate(string message, Guid authorId, IEnumerable<Guid> participants)
@@ -32,10 +36,5 @@ public class MessageValidator : IValidator<MessageContext>
         }
 
         return !results.Any() ? DomainResult.Success() : DomainResult.Error(results);
-    }
-
-    public Task<DomainResult> ValidateAsync(MessageContext context)
-    {
-        return Task.FromResult(Validate(context));
     }
 }

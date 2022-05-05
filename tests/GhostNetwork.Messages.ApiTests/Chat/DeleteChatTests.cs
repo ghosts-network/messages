@@ -18,7 +18,7 @@ public class DeleteChatTests
         // Arrange
         var chatId = Guid.NewGuid();
 
-        var chat = new Chats.Chat(chatId, "Name", It.IsAny<IEnumerable<UserInfo>>());
+        var chat = new Chats.Chat(chatId, "Name", It.IsAny<IReadOnlyCollection<UserInfo>>());
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();

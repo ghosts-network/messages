@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using GhostNetwork.Messages.Api;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 
 namespace GhostNetwork.Messages.ApiTests;
 
@@ -22,6 +23,11 @@ public static class TestServerHelper
 
     public static StringContent AsJsonContent<T>(this T input)
     {
-        return new StringContent(JsonConvert.SerializeObject(input), Encoding.Default, "application/json");
+        return new StringContent(JsonSerializer.Serialize(input), Encoding.Default, "application/json");
+    }
+
+    public static ProblemDetails AsProblemDetails(this HttpContent content)
+    {
+        return JsonSerializer.Deserialize<ProblemDetails>(content.ReadAsStringAsync().Result)!;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Api.Helpers;
+using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Messages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,13 @@ namespace GhostNetwork.Messages.Api.Controllers;
 public class MessagesController : ControllerBase
 {
     private readonly IMessagesService messageService;
+    private readonly IChatsService chatsService;
     private readonly IUserProvider userProvider;
 
-    public MessagesController(IMessagesService messageService, IUserProvider userProvider)
+    public MessagesController(IMessagesService messageService, IChatsService chatsService, IUserProvider userProvider)
     {
         this.messageService = messageService;
+        this.chatsService = chatsService;
         this.userProvider = userProvider;
     }
 
@@ -84,11 +87,16 @@ public class MessagesController : ControllerBase
         [FromRoute] Guid chatId,
         [FromBody, Required] CreateMessageModel model)
     {
+        if (await chatsService.GetByIdAsync(chatId) == null)
+        {
+            return NotFound();
+        }
+
         var author = await userProvider.GetByIdAsync(model.SenderId);
 
         if (author is null)
         {
-            return NotFound();
+            return BadRequest(new ProblemDetails { Title = "Author is not found" });
         }
 
         var (result, id) = await messageService.SendAsync(chatId, author, model.Message);
@@ -161,6 +169,6 @@ public class MessagesController : ControllerBase
     }
 }
 
-public record CreateMessageModel([Required] string SenderId, [Required] string Message);
+public record CreateMessageModel([Required] Guid SenderId, [Required] string Message);
 
 public record UpdateMessageModel([Required] Guid SenderId, [Required] string Message);

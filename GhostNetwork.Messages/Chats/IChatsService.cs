@@ -4,84 +4,72 @@ using System.Threading.Tasks;
 using Domain;
 using Domain.Validation;
 
-namespace GhostNetwork.Messages.Chats
+namespace GhostNetwork.Messages.Chats;
+
+public interface IChatsService
 {
-    public interface IChatsService
+    Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId);
+
+    Task<Chat> GetByIdAsync(Guid id);
+
+    Task<(DomainResult, Chat)> CreateAsync(string name, IReadOnlyCollection<UserInfo> participants);
+
+    Task<DomainResult> UpdateAsync(Chat chat);
+
+    Task DeleteAsync(Guid id);
+}
+
+public class ChatsService : IChatsService
+{
+    private readonly IChatsStorage chatStorage;
+    private readonly IValidator<Chat> validator;
+
+    public ChatsService(IChatsStorage chatStorage, IValidator<Chat> validator)
     {
-        Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId);
-
-        Task<Chat> GetByIdAsync(Guid id);
-
-        Task<(DomainResult, Chat)> CreateAsync(string name, List<UserInfo> participants);
-
-        Task<DomainResult> UpdateAsync(Guid id, string name, List<UserInfo> participants);
-
-        Task DeleteAsync(Guid id);
+        this.chatStorage = chatStorage;
+        this.validator = validator;
     }
 
-    public class ChatsService : IChatsService
+    public async Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId)
     {
-        private readonly IChatsStorage chatStorage;
-        private readonly IValidator<ChatContext> validator;
+        return await chatStorage.SearchAsync(skip, take, userId);
+    }
 
-        public ChatsService(IChatsStorage chatStorage, IValidator<ChatContext> validator)
+    public async Task<Chat> GetByIdAsync(Guid id)
+    {
+        return await chatStorage.GetByIdAsync(id);
+    }
+
+    public async Task<(DomainResult, Chat)> CreateAsync(string name, IReadOnlyCollection<UserInfo> participants)
+    {
+        var newChat = Chat.NewChat(name, participants);
+
+        var result = await validator.ValidateAsync(newChat);
+        if (!result.Successed)
         {
-            this.chatStorage = chatStorage;
-            this.validator = validator;
+            return (result, default);
         }
 
-        public async Task<(IEnumerable<Chat>, long)> SearchAsync(int skip, int take, Guid userId)
+        var chat = await chatStorage.CreatAsync(newChat);
+
+        return (DomainResult.Success(), chat);
+    }
+
+    public async Task<DomainResult> UpdateAsync(Chat chat)
+    {
+        var result = await validator.ValidateAsync(chat);
+        if (!result.Successed)
         {
-            return await chatStorage.SearchAsync(skip, take, userId);
+            return result;
         }
 
-        public async Task<Chat> GetByIdAsync(Guid id)
-        {
-            return await chatStorage.GetByIdAsync(id);
-        }
+        await chatStorage.UpdateAsync(chat);
 
-        public async Task<(DomainResult, Chat)> CreateAsync(string name, List<UserInfo> participants)
-        {
-            var result = await validator.ValidateAsync(new ChatContext(name, participants));
+        return DomainResult.Success();
+    }
 
-            if (!result.Successed)
-            {
-                return (result, default);
-            }
-
-            var newChat = Chat.NewChat(name, participants);
-
-            var chat = await chatStorage.CreatAsync(newChat);
-
-            return (result, chat);
-        }
-
-        public async Task<DomainResult> UpdateAsync(Guid id, string name, List<UserInfo> participants)
-        {
-            var result = await validator.ValidateAsync(new ChatContext(name, participants));
-
-            if (!result.Successed)
-            {
-                return result;
-            }
-
-            var chat = await chatStorage.GetByIdAsync(id);
-
-            if (chat is null)
-            {
-                return DomainResult.Error("Chat is not found");
-            }
-
-            chat.Update(name, participants);
-
-            await chatStorage.UpdateAsync(chat);
-
-            return DomainResult.Success();
-        }
-
-        public async Task DeleteAsync(Guid id)
-        {
-            await chatStorage.DeleteAsync(id);
-        }
+    public async Task DeleteAsync(Guid id)
+    {
+        await chatStorage.DeleteAsync(id);
     }
 }

@@ -23,11 +23,9 @@ public class GetMessageTests
 
         var message = new Message(id, chatId, new UserInfo(Guid.NewGuid(), "Name", null), DateTimeOffset.Now, false, "Test");
 
-        var messages = new List<Message>()
-        {
-            message
-        };
+        var messages = new List<Message> { message };
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();
         var messagesServiceMock = new Mock<IMessagesService>();
 
@@ -37,6 +35,7 @@ public class GetMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => messagesServiceMock.Object);
             collection.AddScoped(_ => userMock.Object);
         });
@@ -83,6 +82,7 @@ public class GetMessageTests
 
         var message = new Message(messageId, chatId, It.IsAny<UserInfo>(), DateTimeOffset.Now, false, "some");
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
@@ -92,6 +92,7 @@ public class GetMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => serviceMock.Object);
             collection.AddScoped(_ => userMock.Object);
         });

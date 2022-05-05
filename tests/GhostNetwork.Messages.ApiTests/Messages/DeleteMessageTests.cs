@@ -21,6 +21,7 @@ public class DeleteMessageTests
 
         var message = new Message(messageId, chatId, It.IsAny<UserInfo>(), DateTimeOffset.Now, false, "some");
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
         var messagesServiceMock = new Mock<IMessagesService>();
 
@@ -30,6 +31,7 @@ public class DeleteMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => messagesServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
@@ -47,6 +49,7 @@ public class DeleteMessageTests
         // Arrange
         var messageId = Guid.NewGuid().ToString();
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();
         var messagesServiceMock = new Mock<IMessagesService>();
 
@@ -56,6 +59,7 @@ public class DeleteMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => messagesServiceMock.Object);
             collection.AddScoped(_ => userMock.Object);
         });

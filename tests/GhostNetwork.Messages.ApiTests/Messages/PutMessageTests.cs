@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Domain;
 using GhostNetwork.Messages.Api.Controllers;
+using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -21,6 +22,7 @@ public class PutMessageTests
         var chatId = Guid.NewGuid();
         var message = new Message(Guid.NewGuid().ToString(), chatId, new UserInfo(model.SenderId, "Name", null), DateTimeOffset.Now, false, model.Message);
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
@@ -34,6 +36,7 @@ public class PutMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => serviceMock.Object);
             collection.AddScoped(_ => userMock.Object);
         });
@@ -53,15 +56,17 @@ public class PutMessageTests
         var chatId = Guid.NewGuid();
         var message = new Message("some_id", chatId, new UserInfo(model.SenderId, It.IsAny<string>(), It.IsAny<string>()), DateTimeOffset.Now, false, model.Message);
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
         var messageServiceMock = new Mock<IMessagesService>();
 
         userServiceMock
-            .Setup(x => x.GetByIdAsync(model.SenderId.ToString()))
+            .Setup(x => x.GetByIdAsync(model.SenderId))
             .ReturnsAsync(default(UserInfo));
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => messageServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });
@@ -81,11 +86,12 @@ public class PutMessageTests
         var chatId = Guid.NewGuid();
         var message = new Message(Guid.NewGuid().ToString(), chatId, new UserInfo(model.SenderId, "Name", null), DateTimeOffset.Now, false, model.Message);
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
         var messageServiceMock = new Mock<IMessagesService>();
 
         userServiceMock
-            .Setup(x => x.GetByIdAsync(model.SenderId.ToString()))
+            .Setup(x => x.GetByIdAsync(model.SenderId))
             .ReturnsAsync(new UserInfo(model.SenderId, "Name", null));
 
         messageServiceMock
@@ -98,6 +104,7 @@ public class PutMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => messageServiceMock.Object);
             collection.AddScoped(_ => userServiceMock.Object);
         });

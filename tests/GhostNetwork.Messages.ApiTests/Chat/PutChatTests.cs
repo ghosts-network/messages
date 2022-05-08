@@ -18,7 +18,7 @@ public class PutChatTests
     public async Task Update_NoContent()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
+        var chatId = new Id(Guid.NewGuid().ToString());
         var participantId = Guid.NewGuid();
         var model = new UpdateChatModel("Name", new List<Guid> { participantId });
         var participants = new List<UserInfo> { new(participantId, "UserId", null) };
@@ -56,7 +56,7 @@ public class PutChatTests
     public async Task Update_NotFound()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
+        var chatId = new Id(Guid.NewGuid().ToString());
         var participantId = Guid.NewGuid();
         var model = new UpdateChatModel("Name", new List<Guid> { participantId });
         var participants = new List<UserInfo> { new(participantId, "UserId", null) };
@@ -122,7 +122,7 @@ public class PutChatTests
     public async Task Update_EmptyParticipants_BadRequest()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
+        var chatId = new Id(Guid.NewGuid().ToString());
         var model = new UpdateChatModel("Name", new List<Guid>());
         var chat = new Chats.Chat(chatId, model.Name, It.IsAny<List<UserInfo>>());
 
@@ -160,7 +160,7 @@ public class PutChatTests
     public async Task Update_NullParticipants_BadRequest()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
+        var chatId = new Id(Guid.NewGuid().ToString());
         var participantId = Guid.NewGuid();
         var model = new UpdateChatModel("Name", null);
         var participants = new List<UserInfo> { new(participantId, "UserId", null) };

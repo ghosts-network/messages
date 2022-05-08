@@ -27,23 +27,24 @@ public class ChatsController : ControllerBase
     /// <summary>
     /// Get user's chat
     /// </summary>
-    /// <param name="skip">Skip exist chats up to a specified position</param>
-    /// <param name="take">Take exist chats up to a specified position</param>
     /// <param name="userId">Filters by user</param>
+    /// <param name="cursor">Cursor used for pagination</param>
+    /// <param name="limit">Limit chats up to a specified position</param>
     /// <response code="200">Exist user chats</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [SwaggerResponseHeader(StatusCodes.Status200OK, "X-TotalCount", "Number", "Total number of user chats")]
     public async Task<ActionResult<IEnumerable<Chat>>> SearchAsync(
-        [FromQuery, Range(0, int.MaxValue)] int skip,
-        [FromQuery, Range(1, 100)] int take,
-        [FromQuery, Required] Guid userId)
+        [FromQuery, Required] Guid userId,
+        [FromQuery] string cursor,
+        [FromQuery, Range(1, 100)] int limit = 20)
     {
-        var (existChats, totalCount) = await chatService.SearchAsync(skip, take, userId);
+        var filter = new ChatFilter(userId);
+        var paging = new Pagination(cursor, limit);
 
-        Response.Headers.Add("X-TotalCount", totalCount.ToString());
+        var chats = await chatService.SearchAsync(filter, paging);
 
-        return Ok(existChats);
+        return Ok(chats);
     }
 
     /// <summary>
@@ -54,10 +55,10 @@ public class ChatsController : ControllerBase
     /// <response code="404">Chat not fount</response>
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Chat>> GetByIdAsync([FromRoute] Guid id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Chat>> GetByIdAsync([FromRoute] string id)
     {
-        var entity = await chatService.GetByIdAsync(id);
+        var entity = await chatService.GetByIdAsync(new Id(id));
 
         if (entity is null)
         {
@@ -112,10 +113,10 @@ public class ChatsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpPut("{id:guid}")]
-    public async Task<ActionResult> UpdateAsync([FromRoute] Guid id, [FromBody] UpdateChatModel model)
+    [HttpPut("{id}")]
+    public async Task<ActionResult> UpdateAsync([FromRoute] string id, [FromBody] UpdateChatModel model)
     {
-        var chat = await chatService.GetByIdAsync(id);
+        var chat = await chatService.GetByIdAsync(new Id(id));
         if (chat is null)
         {
             return NotFound();
@@ -152,17 +153,17 @@ public class ChatsController : ControllerBase
     /// <response code="404">Chat is not found</response>
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpDelete("{id:guid}")]
-    public async Task<ActionResult> DeleteChatAsync([FromRoute] Guid id)
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteChatAsync([FromRoute] string id)
     {
-        var chat = await chatService.GetByIdAsync(id);
+        var chat = await chatService.GetByIdAsync(new Id(id));
 
         if (chat is null)
         {
             return NotFound();
         }
 
-        await chatService.DeleteAsync(id);
+        await chatService.DeleteAsync(new Id(id));
 
         return NoContent();
     }

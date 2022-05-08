@@ -9,7 +9,7 @@ public class MessageEntity
     public ObjectId Id { get; set; }
 
     [BsonElement("chatId")]
-    public Guid ChatId { get; set; }
+    public ObjectId ChatId { get; set; }
 
     [BsonElement("author")]
     public UserInfoEntity Author { get; set; }
@@ -17,9 +17,9 @@ public class MessageEntity
     [BsonElement("sentOn")]
     public DateTimeOffset SentOn { get; set; }
 
-    [BsonElement("isUpdated")]
-    public bool IsUpdated { get; set; }
+    [BsonElement("lastUpdateOn")]
+    public DateTimeOffset LastUpdateOn { get; set; }
 
-    [BsonElement("data")]
-    public string Data { get; set; }
+    [BsonElement("content")]
+    public string Content { get; set; }
 }

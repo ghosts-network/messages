@@ -22,7 +22,7 @@ public class PostChatTests
         var participantId = Guid.NewGuid();
         var model = new UpdateChatModel("Name", new List<Guid> { participantId });
         var participants = new List<UserInfo>() { new UserInfo(participantId, "UserName", null) };
-        var chat = Chats.Chat.NewChat(model.Name, participants);
+        var chat = Chats.Chat.NewChat(new Id(Guid.NewGuid().ToString()), model.Name, participants);
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
@@ -84,7 +84,7 @@ public class PostChatTests
         // Arrange
         var model = new UpdateChatModel("Name", null);
 
-        var chat = Chats.Chat.NewChat(model.Name, It.IsAny<List<UserInfo>>());
+        var chat = Chats.Chat.NewChat(new Id(Guid.NewGuid().ToString()), model.Name, It.IsAny<List<UserInfo>>());
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();

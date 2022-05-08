@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Messages;
@@ -17,84 +16,65 @@ public class MongoMessageStorage : IMessagesStorage
         this.context = context;
     }
 
-    public async Task<(IEnumerable<Message>, long, string)> SearchAsync(string lastMessageId, int take, Guid chatId)
+    public async Task<IEnumerable<Message>> SearchAsync(MessageFilter filter, Pagination pagination)
     {
-        var filter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
-        var sorting = Builders<MessageEntity>.Sort.Descending(p => p.SentOn);
-
-        if (lastMessageId is not null)
+        if (!ObjectId.TryParse(pagination.Cursor, out var cursor))
         {
-            filter &= Builders<MessageEntity>.Filter.Lt(x => x.Id, ObjectId.Parse(lastMessageId));
+            cursor = ObjectId.Empty;
         }
 
-        var totalCount = await context.Message.Find(filter).CountDocumentsAsync();
+        var f = Builders<MessageEntity>.Filter.Eq(m => m.ChatId, filter.ChatId.ToObjectId());
+        var p = cursor != ObjectId.Empty
+            ? Builders<MessageEntity>.Filter.Gt(c => c.Id, cursor)
+            : Builders<MessageEntity>.Filter.Empty;
+        var s = Builders<MessageEntity>.Sort.Descending(m => m.SentOn);
 
         var messages = await context.Message
-
-            .Find(filter)
-            .Sort(sorting)
-            .Limit(take)
+            .Find(f & p)
+            .Sort(s)
+            .Limit(pagination.Limit)
             .ToListAsync();
 
-        var lastMessage = messages.Any() ? messages[^1].Id.ToString() : null;
-
-        return (messages.Select(ToDomain), totalCount, lastMessage);
+        return messages.Select(ToDomain).ToList();
     }
 
-    public async Task<Message> GetByIdAsync(string id)
+    public async Task<Message> GetByIdAsync(Id id)
     {
-        if (!ObjectId.TryParse(id, out var oId))
-        {
-            return null;
-        }
-
-        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, oId);
+        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id.ToObjectId());
 
         var entity = await context.Message.Find(filter).FirstOrDefaultAsync();
 
         return entity is null ? null : ToDomain(entity);
     }
 
-    public async Task<string> SendAsync(Message message)
+    public async Task SendAsync(Message message)
     {
-        var entity = new MessageEntity()
+        var entity = new MessageEntity
         {
-            ChatId = message.ChatId,
+            Id = message.Id.ToObjectId(),
+            ChatId = message.ChatId.ToObjectId(),
             Author = (UserInfoEntity)message.Author,
             SentOn = message.SentOn,
-            Data = message.Data
+            Content = message.Content
         };
 
         await context.Message.InsertOneAsync(entity);
-
-        return entity.Id.ToString();
     }
 
-    public async Task DeleteAsync(string id)
+    public async Task DeleteAsync(Id id)
     {
-        if (!ObjectId.TryParse(id, out var oId))
-        {
-            return;
-        }
-
-        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, oId);
+        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id.ToObjectId());
 
         await context.Message.DeleteOneAsync(filter);
     }
 
-    public async Task UpdateAsync(string id, string message)
+    public async Task UpdateAsync(Message message)
     {
-        if (!ObjectId.TryParse(id, out var oId))
-        {
-            return;
-        }
-
-        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, oId);
+        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, message.Id.ToObjectId());
 
         var update = Builders<MessageEntity>.Update
-            .Set(p => p.SentOn, DateTimeOffset.Now)
-            .Set(p => p.IsUpdated, true)
-            .Set(p => p.Data, message);
+            .Set(p => p.LastUpdateOn, message.UpdatedOn)
+            .Set(p => p.Content, message.Content);
 
         await context.Message.UpdateOneAsync(filter, update);
     }
@@ -102,11 +82,11 @@ public class MongoMessageStorage : IMessagesStorage
     private static Message ToDomain(MessageEntity entity)
     {
         return new Message(
-            entity.Id.ToString(),
-            entity.ChatId,
+            entity.Id.ToId(),
+            entity.ChatId.ToId(),
             (UserInfo)entity.Author,
             entity.SentOn,
-            entity.IsUpdated,
-            entity.Data);
+            entity.LastUpdateOn,
+            entity.Content);
     }
 }

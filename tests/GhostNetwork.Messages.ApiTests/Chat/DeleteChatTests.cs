@@ -16,7 +16,7 @@ public class DeleteChatTests
     public async Task DeleteChat_NoContent()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
+        var chatId = new Id(Guid.NewGuid().ToString());
 
         var chat = new Chats.Chat(chatId, "Name", It.IsAny<IReadOnlyCollection<UserInfo>>());
 
@@ -44,7 +44,7 @@ public class DeleteChatTests
     public async Task DeleteChat_NotFound()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
+        var chatId = new Id(Guid.NewGuid().ToString());
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();

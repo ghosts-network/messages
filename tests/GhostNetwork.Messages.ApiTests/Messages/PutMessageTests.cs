@@ -19,15 +19,16 @@ public class PutMessageTests
     {
         // Arrange
         var model = new UpdateMessageModel(Guid.NewGuid(), "message");
-        var chatId = Guid.NewGuid();
-        var message = new Message(Guid.NewGuid().ToString(), chatId, new UserInfo(model.SenderId, "Name", null), DateTimeOffset.Now, false, model.Message);
+        var chatId = new Id(Guid.NewGuid().ToString());
+        var now = DateTimeOffset.UtcNow;
+        var message = new Message(new Id(Guid.NewGuid().ToString()), chatId, new UserInfo(model.SenderId, "Name", null), now, now, model.Message);
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
         serviceMock
-            .Setup(x => x.UpdateAsync(message.Id, chatId, model.Message, model.SenderId))
+            .Setup(x => x.UpdateAsync(message.Id, model.Message, model.SenderId))
             .ReturnsAsync(DomainResult.Success);
 
         serviceMock
@@ -53,8 +54,10 @@ public class PutMessageTests
     {
         // Arrange
         var model = new UpdateMessageModel(Guid.NewGuid(), "Message");
-        var chatId = Guid.NewGuid();
-        var message = new Message("some_id", chatId, new UserInfo(model.SenderId, It.IsAny<string>(), It.IsAny<string>()), DateTimeOffset.Now, false, model.Message);
+        var id = new Id(Guid.NewGuid().ToString());
+        var chatId = new Id(Guid.NewGuid().ToString());
+        var now = DateTimeOffset.UtcNow;
+        var message = new Message(id, chatId, new UserInfo(model.SenderId, It.IsAny<string>(), It.IsAny<string>()), now, now, model.Message);
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
@@ -83,8 +86,9 @@ public class PutMessageTests
     {
         // Arrange
         var model = new UpdateMessageModel(Guid.NewGuid(), null);
-        var chatId = Guid.NewGuid();
-        var message = new Message(Guid.NewGuid().ToString(), chatId, new UserInfo(model.SenderId, "Name", null), DateTimeOffset.Now, false, model.Message);
+        var chatId = new Id(Guid.NewGuid().ToString());
+        var now = DateTimeOffset.UtcNow;
+        var message = new Message(new Id(Guid.NewGuid().ToString()), chatId, new UserInfo(model.SenderId, "Name", null), now, now, model.Message);
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
@@ -95,7 +99,7 @@ public class PutMessageTests
             .ReturnsAsync(new UserInfo(model.SenderId, "Name", null));
 
         messageServiceMock
-            .Setup(x => x.UpdateAsync(message.Id, chatId, model.Message, model.SenderId))
+            .Setup(x => x.UpdateAsync(message.Id, model.Message, model.SenderId))
             .ReturnsAsync(DomainResult.Error("Null message"));
 
         messageServiceMock

@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GhostNetwork.Messages.Chats;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace GhostNetwork.Messages.MongoDb;
 
 public class ChatEntity
 {
-    [BsonId]
-    public Guid Id { get; set; }
+    public ObjectId Id { get; set; }
 
     [BsonElement("name")]
     public string Name { get; set; }
@@ -25,7 +24,7 @@ public class ChatEntity
         return entity == null
             ? null
             : new Chat(
-                entity.Id,
+                entity.Id.ToId(),
                 entity.Name,
                 entity.Participants.Select(p => (UserInfo)p).ToList());
     }

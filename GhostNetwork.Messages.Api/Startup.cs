@@ -60,6 +60,8 @@ namespace GhostNetwork.Messages.Api
                 return new MongoDbContext(client.GetDatabase(mongoUrl.DatabaseName ?? DefaultDbName));
             });
 
+            services.AddSingleton<IIdProvider, ObjectIdProvider>();
+
             services.AddScoped<IChatsStorage, MongoChatStorage>();
             services.AddScoped<IChatsService, ChatsService>();
             services.AddScoped<IValidator<Chat>, ChatValidator>();

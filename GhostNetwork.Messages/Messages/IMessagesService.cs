@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Domain;
 using Domain.Validation;
@@ -10,93 +9,90 @@ namespace GhostNetwork.Messages.Messages;
 
 public interface IMessagesService
 {
-    Task<(IEnumerable<Message>, long, string)> SearchAsync(string lastMessageId, int take, Guid chatId);
+    Task<IEnumerable<Message>> SearchAsync(MessageFilter filter, Pagination pagination);
 
-    Task<Message> GetByIdAsync(string id);
+    Task<Message> GetByIdAsync(Id id);
 
-    Task<(DomainResult, string)> SendAsync(Guid chatId, UserInfo author, string message);
+    Task<(DomainResult, Id)> SendAsync(Id chatId, UserInfo author, string message);
 
-    Task DeleteAsync(string id);
+    Task DeleteAsync(Id id);
 
-    Task<DomainResult> UpdateAsync(string messageId, Guid chatId, string message, Guid userId);
+    Task<DomainResult> UpdateAsync(Id messageId, string message, Guid userId);
 }
 
 public class MessagesService : IMessagesService
 {
     private readonly IMessagesStorage messageStorage;
     private readonly IChatsService chatsService;
-    private readonly IValidator<MessageContext> validator;
+    private readonly IValidator<Message> validator;
+    private readonly IIdProvider idProvider;
 
-    public MessagesService(IMessagesStorage messageStorage, IValidator<MessageContext> validator, IChatsService chatsService)
+    public MessagesService(
+        IMessagesStorage messageStorage,
+        IValidator<Message> validator,
+        IChatsService chatsService,
+        IIdProvider idProvider)
     {
         this.messageStorage = messageStorage;
         this.chatsService = chatsService;
         this.validator = validator;
+        this.idProvider = idProvider;
     }
 
-    public async Task<(IEnumerable<Message>, long, string)> SearchAsync(string lastMessageId, int take, Guid chatId)
+    public Task<IEnumerable<Message>> SearchAsync(MessageFilter filter, Pagination pagination)
     {
-        return await messageStorage.SearchAsync(lastMessageId, take, chatId);
+        return messageStorage.SearchAsync(filter, pagination);
     }
 
-    public async Task<Message> GetByIdAsync(string id)
+    public Task<Message> GetByIdAsync(Id id)
     {
-        return await messageStorage.GetByIdAsync(id);
+        return messageStorage.GetByIdAsync(id);
     }
 
-    public async Task<(DomainResult, string)> SendAsync(Guid chatId, UserInfo author, string message)
+    public async Task<(DomainResult, Id)> SendAsync(Id chatId, UserInfo author, string content)
     {
         var chat = await chatsService.GetByIdAsync(chatId);
-
         if (chat is null)
         {
             return (DomainResult.Error("Chat is not found"), default);
         }
 
-        var result = await validator.ValidateAsync(new MessageContext(message, author.Id, chat.Participants.Select(x => x.Id)));
+        var message = Message.NewMessage(idProvider.Generate(), chatId, author, content);
 
+        var result = await validator.ValidateAsync(message);
         if (!result.Successed)
         {
-            return (result, default);
+            return (result, null);
         }
 
-        var newMessage = Message.NewMessage(chatId, author, message);
+        await messageStorage.SendAsync(message);
 
-        var id = await messageStorage.SendAsync(newMessage);
-
-        return (result, id);
+        return (result, message.Id);
     }
 
-    public async Task DeleteAsync(string id)
+    public async Task<DomainResult> UpdateAsync(Id id, string content, Guid userId)
     {
-        await messageStorage.DeleteAsync(id);
-    }
-
-    public async Task<DomainResult> UpdateAsync(string messageId, Guid chatId, string message, Guid userId)
-    {
-        var chat = await chatsService.GetByIdAsync(chatId);
-
-        if (chat is null)
+        var message = await messageStorage.GetByIdAsync(id);
+        if (message.Author.Id != userId)
         {
-            return DomainResult.Error("Chat is not found");
+            return DomainResult.Error("You are not the author of this message");
         }
 
-        var result = await validator.ValidateAsync(new MessageContext(message, userId, chat.Participants.Select(x => x.Id)));
+        message.Update(content);
 
+        var result = await validator.ValidateAsync(message);
         if (!result.Successed)
         {
             return result;
         }
 
-        var existMessage = await messageStorage.GetByIdAsync(messageId);
+        await messageStorage.UpdateAsync(message);
 
-        if (existMessage.Author.Id != userId)
-        {
-            return DomainResult.Error("You are not the author of this message");
-        }
+        return DomainResult.Success();
+    }
 
-        await messageStorage.UpdateAsync(messageId, message);
-
-        return result;
+    public async Task DeleteAsync(Id id)
+    {
+        await messageStorage.DeleteAsync(id);
     }
 }

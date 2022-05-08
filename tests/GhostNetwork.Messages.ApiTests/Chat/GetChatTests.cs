@@ -16,7 +16,7 @@ public class GetChatTests
     public async Task GetChatInfo_Ok()
     {
         // Arrange
-        var chat = Chats.Chat.NewChat("Test", new List<UserInfo>());
+        var chat = Chats.Chat.NewChat(new Id(Guid.NewGuid().ToString()), "Test", new List<UserInfo>());
 
         var chatsServiceMock = new Mock<IChatsService>();
 
@@ -40,8 +40,6 @@ public class GetChatTests
     public async Task SearchUserChats_Ok()
     {
         // Arrange
-        var skip = 0;
-        var take = 1;
         var userId = Guid.NewGuid();
 
         var users = new[]
@@ -52,8 +50,8 @@ public class GetChatTests
         var chatsServiceMock = new Mock<IChatsService>();
 
         chatsServiceMock
-            .Setup(x => x.SearchAsync(skip, take, userId))
-            .ReturnsAsync((users, users.Length));
+            .Setup(x => x.SearchAsync(It.IsAny<ChatFilter>(), It.IsAny<Pagination>()))
+            .ReturnsAsync(users);
 
         var client = TestServerHelper.New(collection =>
         {

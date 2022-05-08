@@ -6,13 +6,13 @@ namespace GhostNetwork.Messages.Messages;
 
 public interface IMessagesStorage
 {
-    Task<(IEnumerable<Message>, long, string)> SearchAsync(string lastMessageId, int take, Guid chatId);
+    Task<IEnumerable<Message>> SearchAsync(MessageFilter filter, Pagination pagination);
 
-    Task<Message> GetByIdAsync(string id);
+    Task<Message> GetByIdAsync(Id id);
 
-    Task<string> SendAsync(Message message);
+    Task SendAsync(Message message);
 
-    Task DeleteAsync(string id);
+    Task UpdateAsync(Message message);
 
-    Task UpdateAsync(string id, string message);
+    Task DeleteAsync(Id id);
 }

@@ -7,7 +7,6 @@ using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Messages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Filters;
 
 namespace GhostNetwork.Messages.Api.Controllers;
 
@@ -30,22 +29,20 @@ public class MessagesController : ControllerBase
     /// Get messages by chat id
     /// </summary>
     /// <param name="chatId">Chat identifier</param>
-    /// <param name="lastMessageId">Last message id for cursor pagination</param>
-    /// <param name="take">Take exist messages up to a specified position</param>
+    /// <param name="cursor">Cursor used for pagination</param>
+    /// <param name="limit">Take exist messages up to a specified position</param>
     /// <response code="200">Messages</response>
-    [HttpGet("{chatId:guid}/messages")]
+    [HttpGet("{chatId}/messages")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [SwaggerResponseHeader(StatusCodes.Status200OK, "X-TotalCount", "Number", "Total number of messages")]
-    [SwaggerResponseHeader(StatusCodes.Status200OK, "X-LastMessageId", "String", "Last message id for cursor pagination")]
     public async Task<ActionResult<IEnumerable<Message>>> SearchAsync(
-        [FromRoute] Guid chatId,
-        [FromQuery] string lastMessageId,
-        [FromQuery, Range(1, 100)] int take)
+        [FromRoute] string chatId,
+        [FromQuery] string cursor,
+        [FromQuery, Range(1, 100)] int limit = 20)
     {
-        var (messages, totalCount, lastMessage) = await messageService.SearchAsync(lastMessageId, take, chatId);
+        var filter = new MessageFilter(new Id(chatId));
+        var paging = new Pagination(cursor, limit);
 
-        Response.Headers.Add("X-TotalCount", totalCount.ToString());
-        Response.Headers.Add("X-LastMessageId", lastMessage);
+        var messages = await messageService.SearchAsync(filter, paging);
 
         return Ok(messages);
     }
@@ -61,7 +58,7 @@ public class MessagesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Message>> GetByIdAsync([FromRoute] string messageId)
     {
-        var message = await messageService.GetByIdAsync(messageId);
+        var message = await messageService.GetByIdAsync(new Id(messageId));
 
         if (message is null)
         {
@@ -79,15 +76,16 @@ public class MessagesController : ControllerBase
     /// <response code="201">New message</response>
     /// <response code="400">Problem details</response>
     /// <response code="400">Author profile or chat is not found</response>
-    [HttpPost("{chatId:guid}/messages")]
+    [HttpPost("{chatId}/messages")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Message>> SendAsync(
-        [FromRoute] Guid chatId,
+        [FromRoute] string chatId,
         [FromBody, Required] CreateMessageModel model)
     {
-        if (await chatsService.GetByIdAsync(chatId) == null)
+        var chatIdentifier = new Id(chatId);
+        if (await chatsService.GetByIdAsync(chatIdentifier) == null)
         {
             return NotFound();
         }
@@ -99,43 +97,42 @@ public class MessagesController : ControllerBase
             return BadRequest(new ProblemDetails { Title = "Author is not found" });
         }
 
-        var (result, id) = await messageService.SendAsync(chatId, author, model.Message);
+        var (result, id) = await messageService.SendAsync(chatIdentifier, author, model.Message);
 
         if (!result.Successed)
         {
             return BadRequest(result.ToProblemDetails());
         }
 
-        await chatsService.ReorderAsync(chatId);
+        await chatsService.ReorderAsync(chatIdentifier);
         return Created(Url.Action("GetById", new { id }) ?? string.Empty, await messageService.GetByIdAsync(id));
     }
 
     /// <summary>
     /// Update message
     /// </summary>
-    /// <param name="chatId">Chat id</param>
     /// <param name="messageId">Message id</param>
     /// <param name="model">Updated model</param>
     /// <response code="204">Successfully updated</response>
     /// <response code="400">Problem details</response>
     /// <response code="404">Message not found</response>
-    [HttpPut("{chatId:guid}/messages/{messageId}")]
+    [HttpPut("{chatId}/messages/{messageId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UpdateAsync(
-        [FromRoute] Guid chatId,
         [FromRoute] string messageId,
         [FromBody, Required] UpdateMessageModel model)
     {
-        var message = await messageService.GetByIdAsync(messageId);
+        var messageIdentifier = new Id(messageId);
+        var message = await messageService.GetByIdAsync(messageIdentifier);
 
         if (message is null)
         {
             return NotFound();
         }
 
-        var result = await messageService.UpdateAsync(messageId, chatId, model.Message, model.SenderId);
+        var result = await messageService.UpdateAsync(messageIdentifier, model.Message, model.SenderId);
 
         if (!result.Successed)
         {
@@ -157,14 +154,15 @@ public class MessagesController : ControllerBase
     public async Task<ActionResult> DeleteAsync(
         [FromRoute] string messageId)
     {
-        var message = await messageService.GetByIdAsync(messageId);
+        var messageIdentifier = new Id(messageId);
+        var message = await messageService.GetByIdAsync(messageIdentifier);
 
         if (message is null)
         {
             return NotFound();
         }
 
-        await messageService.DeleteAsync(messageId);
+        await messageService.DeleteAsync(messageIdentifier);
 
         return NoContent();
     }

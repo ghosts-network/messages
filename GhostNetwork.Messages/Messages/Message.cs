@@ -1,45 +1,43 @@
 ﻿using System;
 
-namespace GhostNetwork.Messages.Messages
+namespace GhostNetwork.Messages.Messages;
+
+public class Message
 {
-    public class Message
+    public Message(Id id, Id chatId, UserInfo author, DateTimeOffset sentOn, DateTimeOffset updatedOn, string content)
     {
-        public Message(string id, Guid chatId, UserInfo author, DateTimeOffset sentOn, bool isUpdated, string data)
-        {
-            Id = id;
-            ChatId = chatId;
-            Author = author;
-            SentOn = sentOn;
-            IsUpdated = isUpdated;
-            Data = data;
-        }
+        Id = id;
+        ChatId = chatId;
+        Author = author;
+        SentOn = sentOn;
+        UpdatedOn = updatedOn;
+        Content = content;
+    }
 
-        public string Id { get; }
+    public Id Id { get; }
 
-        public Guid ChatId { get; }
+    public Id ChatId { get; }
 
-        public UserInfo Author { get; }
+    public UserInfo Author { get; }
 
-        public DateTimeOffset SentOn { get; private set; }
+    public DateTimeOffset SentOn { get; }
 
-        public bool IsUpdated { get; private set; }
+    public DateTimeOffset UpdatedOn { get; private set; }
 
-        public string Data { get; private set; }
+    public string Content { get; private set; }
 
-        public static Message NewMessage(Guid chatId, UserInfo author, string data)
-        {
-            var sentOn = DateTimeOffset.UtcNow;
+    public static Message NewMessage(Id id, Id chatId, UserInfo author, string content)
+    {
+        var now = DateTimeOffset.UtcNow;
 
-            return new Message(default, chatId, author, sentOn, false, data);
-        }
+        return new Message(id, chatId, author, now, now, content);
+    }
 
-        public Message Update(string data)
-        {
-            SentOn = DateTimeOffset.Now;
-            IsUpdated = true;
-            Data = data;
+    public Message Update(string content)
+    {
+        UpdatedOn = DateTimeOffset.UtcNow;
+        Content = content;
 
-            return this;
-        }
+        return this;
     }
 }

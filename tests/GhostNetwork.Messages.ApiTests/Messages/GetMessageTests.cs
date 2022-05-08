@@ -17,11 +17,11 @@ public class GetMessageTests
     public async Task GetChatMessages()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
-        var id = Guid.NewGuid().ToString();
-        const int take = 1;
+        var chatId = new Id(Guid.NewGuid().ToString());
+        var id = new Id(Guid.NewGuid().ToString());
 
-        var message = new Message(id, chatId, new UserInfo(Guid.NewGuid(), "Name", null), DateTimeOffset.Now, false, "Test");
+        var now = DateTimeOffset.UtcNow;
+        var message = new Message(id, chatId, new UserInfo(Guid.NewGuid(), "Name", null), now, now, "Test");
 
         var messages = new List<Message> { message };
 
@@ -30,8 +30,8 @@ public class GetMessageTests
         var messagesServiceMock = new Mock<IMessagesService>();
 
         messagesServiceMock
-            .Setup(x => x.SearchAsync(id, take, chatId))
-            .ReturnsAsync((messages, messages.Count, messages[^1].Id));
+            .Setup(x => x.SearchAsync(It.IsAny<MessageFilter>(), It.IsAny<Pagination>()))
+            .ReturnsAsync(messages);
 
         var client = TestServerHelper.New(collection =>
         {
@@ -51,8 +51,9 @@ public class GetMessageTests
     public async Task GetById_NotFound()
     {
         // Arrange
-        var id = Guid.NewGuid().ToString();
+        var id = new Id(Guid.NewGuid().ToString());
 
+        var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();
         var serviceMock = new Mock<IMessagesService>();
 
@@ -62,12 +63,13 @@ public class GetMessageTests
 
         var client = TestServerHelper.New(collection =>
         {
+            collection.AddScoped(_ => chatsServiceMock.Object);
             collection.AddScoped(_ => serviceMock.Object);
             collection.AddScoped(_ => userMock.Object);
         });
 
         // Act
-        var response = await client.GetAsync($"/chats/messages{id}");
+        var response = await client.GetAsync($"/chats/messages/{id}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
@@ -77,10 +79,11 @@ public class GetMessageTests
     public async Task GetById_Ok()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
-        var messageId = Guid.NewGuid().ToString();
+        var chatId = new Id(Guid.NewGuid().ToString());
+        var messageId = new Id(Guid.NewGuid().ToString());
 
-        var message = new Message(messageId, chatId, It.IsAny<UserInfo>(), DateTimeOffset.Now, false, "some");
+        var now = DateTimeOffset.UtcNow;
+        var message = new Message(messageId, chatId, It.IsAny<UserInfo>(), DateTimeOffset.Now, now, "some");
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();

@@ -19,8 +19,9 @@ public class PostMessageTests
     {
         // Arrange
         var model = new CreateMessageModel(Guid.NewGuid(), "message");
-        var chatId = Guid.NewGuid();
-        var message = new Message("Guid.Empty", chatId, null, DateTimeOffset.Now, false, model.Message);
+        var chatId = new Id(Guid.NewGuid().ToString());
+        var now = DateTimeOffset.UtcNow;
+        var message = new Message(new Id(Guid.NewGuid().ToString()), chatId, null, now, now, model.Message);
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
@@ -28,7 +29,7 @@ public class PostMessageTests
 
         chatsServiceMock
             .Setup(x => x.GetByIdAsync(chatId))
-            .ReturnsAsync(new Chats.Chat(Guid.NewGuid(), "Name", new[]
+            .ReturnsAsync(new Chats.Chat(chatId, "Name", new[]
             {
                 new UserInfo(Guid.NewGuid(), "Name", null)
             }));
@@ -64,7 +65,7 @@ public class PostMessageTests
     {
         // Arrange
         var model = new CreateMessageModel(Guid.Empty, "message");
-        var chatId = Guid.NewGuid();
+        var chatId = new Id(Guid.NewGuid().ToString());
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
@@ -72,7 +73,7 @@ public class PostMessageTests
 
         chatsServiceMock
             .Setup(x => x.GetByIdAsync(chatId))
-            .ReturnsAsync(new Chats.Chat(Guid.NewGuid(), "Name", new[]
+            .ReturnsAsync(new Chats.Chat(chatId, "Name", new[]
             {
                 new UserInfo(Guid.NewGuid(), "Name", null)
             }));
@@ -102,7 +103,7 @@ public class PostMessageTests
     {
         // Arrange
         var model = new CreateMessageModel(Guid.NewGuid(), null);
-        var chatId = Guid.NewGuid();
+        var chatId = new Id(Guid.NewGuid().ToString());
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
@@ -135,7 +136,7 @@ public class PostMessageTests
     {
         // Arrange
         var model = new CreateMessageModel(Guid.NewGuid(), "message");
-        var invalidChatId = Guid.NewGuid();
+        var invalidChatId = new Id(Guid.NewGuid().ToString());
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();

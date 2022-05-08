@@ -16,17 +16,18 @@ public class DeleteMessageTests
     public async Task DeleteMessage_NoContent()
     {
         // Arrange
-        var chatId = Guid.NewGuid();
-        var messageId = Guid.NewGuid().ToString();
+        var chatId = new Id(Guid.NewGuid().ToString());
+        var id = new Id(Guid.NewGuid().ToString());
 
-        var message = new Message(messageId, chatId, It.IsAny<UserInfo>(), DateTimeOffset.Now, false, "some");
+        var now = DateTimeOffset.UtcNow;
+        var message = new Message(id, chatId, It.IsAny<UserInfo>(), now, now, "some");
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
         var messagesServiceMock = new Mock<IMessagesService>();
 
         messagesServiceMock
-            .Setup(x => x.GetByIdAsync(messageId))
+            .Setup(x => x.GetByIdAsync(id))
             .ReturnsAsync(message);
 
         var client = TestServerHelper.New(collection =>
@@ -37,7 +38,7 @@ public class DeleteMessageTests
         });
 
         // Act
-        var response = await client.DeleteAsync($"/chats/messages/{messageId}");
+        var response = await client.DeleteAsync($"/chats/messages/{id}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
@@ -47,14 +48,14 @@ public class DeleteMessageTests
     public async Task DeleteMessage_NotFound()
     {
         // Arrange
-        var messageId = Guid.NewGuid().ToString();
+        var id = new Id(Guid.NewGuid().ToString());
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userMock = new Mock<IUserProvider>();
         var messagesServiceMock = new Mock<IMessagesService>();
 
         messagesServiceMock
-            .Setup(x => x.GetByIdAsync(messageId))
+            .Setup(x => x.GetByIdAsync(id))
             .ReturnsAsync(default(Message));
 
         var client = TestServerHelper.New(collection =>
@@ -65,7 +66,7 @@ public class DeleteMessageTests
         });
 
         // Act
-        var response = await client.DeleteAsync($"/chats/messages/{messageId}");
+        var response = await client.DeleteAsync($"/chats/messages/{id}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);

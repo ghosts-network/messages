@@ -124,6 +124,7 @@ public class PutChatTests
         // Arrange
         var chatId = Guid.NewGuid();
         var model = new UpdateChatModel("Name", new List<Guid>());
+        var chat = new Chats.Chat(chatId, model.Name, It.IsAny<List<UserInfo>>());
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
@@ -131,6 +132,10 @@ public class PutChatTests
         userServiceMock
             .Setup(x => x.SearchAsync(model.Participants))
             .ReturnsAsync(new List<UserInfo>());
+
+        chatsServiceMock
+            .Setup(x => x.GetByIdAsync(chatId))
+            .ReturnsAsync(chat);
 
         chatsServiceMock
             .Setup(x => x.UpdateAsync(It.IsAny<Chats.Chat>()))
@@ -159,6 +164,7 @@ public class PutChatTests
         var participantId = Guid.NewGuid();
         var model = new UpdateChatModel("Name", null);
         var participants = new List<UserInfo> { new(participantId, "UserId", null) };
+        var chat = new Chats.Chat(chatId, model.Name, It.IsAny<List<UserInfo>>());
 
         var chatsServiceMock = new Mock<IChatsService>();
         var userServiceMock = new Mock<IUserProvider>();
@@ -166,6 +172,10 @@ public class PutChatTests
         userServiceMock
             .Setup(x => x.SearchAsync(model.Participants))
             .ReturnsAsync(participants);
+
+        chatsServiceMock
+            .Setup(x => x.GetByIdAsync(chatId))
+            .ReturnsAsync(chat);
 
         chatsServiceMock
             .Setup(x => x.UpdateAsync(It.IsAny<Chats.Chat>()))

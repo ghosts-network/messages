@@ -30,7 +30,7 @@ public class MongoMessageStorage : IMessagesStorage
             : Builders<MessageEntity>.Filter.Empty;
         var s = Builders<MessageEntity>.Sort.Descending(m => m.SentOn);
 
-        var messages = await context.Message
+        var messages = await context.Messages
             .Find(f & p)
             .Sort(s)
             .Limit(pagination.Limit)
@@ -44,7 +44,7 @@ public class MongoMessageStorage : IMessagesStorage
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id)
             & Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
 
-        var entity = await context.Message.Find(filter).FirstOrDefaultAsync();
+        var entity = await context.Messages.Find(filter).FirstOrDefaultAsync();
 
         return entity is null ? null : ToDomain(entity);
     }
@@ -60,7 +60,7 @@ public class MongoMessageStorage : IMessagesStorage
             Content = message.Content
         };
 
-        await context.Message.InsertOneAsync(entity);
+        await context.Messages.InsertOneAsync(entity);
     }
 
     public async Task UpdateAsync(Message message)
@@ -71,7 +71,7 @@ public class MongoMessageStorage : IMessagesStorage
             .Set(p => p.LastUpdateOn, message.UpdatedOn)
             .Set(p => p.Content, message.Content);
 
-        await context.Message.UpdateOneAsync(filter, update);
+        await context.Messages.UpdateOneAsync(filter, update);
     }
 
     public async Task<bool> DeleteAsync(ObjectId chatId, ObjectId id)
@@ -79,7 +79,7 @@ public class MongoMessageStorage : IMessagesStorage
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id)
             & Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
 
-        var result = await context.Message.DeleteOneAsync(filter);
+        var result = await context.Messages.DeleteOneAsync(filter);
         return result.DeletedCount > 0;
     }
 
@@ -87,7 +87,7 @@ public class MongoMessageStorage : IMessagesStorage
     {
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
 
-        return context.Message.DeleteManyAsync(filter);
+        return context.Messages.DeleteManyAsync(filter);
     }
 
     private static Message ToDomain(MessageEntity entity)

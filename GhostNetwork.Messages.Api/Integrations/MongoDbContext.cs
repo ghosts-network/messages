@@ -13,7 +13,7 @@ public class MongoDbContext
         this.database = database;
     }
 
-    public IMongoCollection<ChatEntity> Chat => database.GetCollection<ChatEntity>("chats");
+    public IMongoCollection<ChatEntity> Chats => database.GetCollection<ChatEntity>("chats");
 
-    public IMongoCollection<MessageEntity> Message => database.GetCollection<MessageEntity>("messages");
+    public IMongoCollection<MessageEntity> Messages => database.GetCollection<MessageEntity>("messages");
 }

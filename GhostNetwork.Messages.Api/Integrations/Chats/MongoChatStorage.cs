@@ -30,7 +30,7 @@ public class MongoChatStorage : IChatsStorage
             : Builders<ChatEntity>.Filter.Empty;
         var s = Builders<ChatEntity>.Sort.Descending(c => c.Order);
 
-        var chats = await context.Chat
+        var chats = await context.Chats
             .Find(f & p)
             .Sort(s)
             .Limit(pagination.Limit)
@@ -43,7 +43,7 @@ public class MongoChatStorage : IChatsStorage
     {
         var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
-        var entity = await context.Chat.Find(filter).FirstOrDefaultAsync();
+        var entity = await context.Chats.Find(filter).FirstOrDefaultAsync();
 
         return (Chat)entity;
     }
@@ -55,7 +55,7 @@ public class MongoChatStorage : IChatsStorage
             Id = chat.Id,
             Name = chat.Name,
             Order = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            Participants = chat.Participants.Select(x => new UserInfoEntity()
+            Participants = chat.Participants.Select(x => new UserInfoEntity
             {
                 Id = x.Id,
                 FullName = x.FullName,
@@ -63,7 +63,7 @@ public class MongoChatStorage : IChatsStorage
             }).ToList()
         };
 
-        await context.Chat.InsertOneAsync(entity);
+        await context.Chats.InsertOneAsync(entity);
 
         return (Chat)entity;
     }
@@ -76,14 +76,14 @@ public class MongoChatStorage : IChatsStorage
             .Set(p => p.Name, chat.Name)
             .Set(p => p.Participants, chat.Participants.Select(x => new UserInfoEntity { Id = x.Id, FullName = x.FullName, AvatarUrl = x.AvatarUrl }).ToList());
 
-        await context.Chat.UpdateOneAsync(filter, update);
+        await context.Chats.UpdateOneAsync(filter, update);
     }
 
     public async Task<bool> DeleteAsync(ObjectId id)
     {
         var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
-        var result = await context.Chat.DeleteOneAsync(filter);
+        var result = await context.Chats.DeleteOneAsync(filter);
         return result.DeletedCount > 0;
     }
 
@@ -95,6 +95,6 @@ public class MongoChatStorage : IChatsStorage
         var update = Builders<ChatEntity>.Update
             .Set(p => p.Order, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
-        await context.Chat.UpdateOneAsync(filter, update);
+        await context.Chats.UpdateOneAsync(filter, update);
     }
 }

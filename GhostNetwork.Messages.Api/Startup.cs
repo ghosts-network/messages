@@ -1,5 +1,6 @@
 using System;
 using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Api.Helpers;
 using GhostNetwork.Messages.Api.Helpers.OpenApi;
 using GhostNetwork.Messages.Api.Users;
 using GhostNetwork.Messages.Chats;
@@ -33,7 +34,11 @@ namespace GhostNetwork.Messages.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new ObjectIdConverter());
+                });
 
             services.AddLogging(x =>
             {

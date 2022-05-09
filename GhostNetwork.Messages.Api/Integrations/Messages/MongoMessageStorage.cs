@@ -39,9 +39,10 @@ public class MongoMessageStorage : IMessagesStorage
         return messages.Select(ToDomain).ToList();
     }
 
-    public async Task<Message> GetByIdAsync(ObjectId id)
+    public async Task<Message> GetByIdAsync(ObjectId chatId, ObjectId id)
     {
-        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id);
+        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id)
+            & Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
 
         var entity = await context.Message.Find(filter).FirstOrDefaultAsync();
 
@@ -73,9 +74,10 @@ public class MongoMessageStorage : IMessagesStorage
         await context.Message.UpdateOneAsync(filter, update);
     }
 
-    public async Task<bool> DeleteAsync(ObjectId id)
+    public async Task<bool> DeleteAsync(ObjectId chatId, ObjectId id)
     {
-        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id);
+        var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, id)
+            & Builders<MessageEntity>.Filter.Eq(p => p.ChatId, chatId);
 
         var result = await context.Message.DeleteOneAsync(filter);
         return result.DeletedCount > 0;

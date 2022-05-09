@@ -33,7 +33,7 @@ public class PutMessageTests
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(x => x.GetByIdAsync(message.Id))
+            .Setup(x => x.GetByIdAsync(chat.Id, message.Id))
             .ReturnsAsync(message);
 
         var client = TestServerHelper.New(collection =>
@@ -68,7 +68,7 @@ public class PutMessageTests
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(x => x.GetByIdAsync(message.Id))
+            .Setup(x => x.GetByIdAsync(chat.Id, message.Id))
             .ReturnsAsync(default(Message));
 
         var client = TestServerHelper.New(collection =>
@@ -102,7 +102,7 @@ public class PutMessageTests
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(x => x.GetByIdAsync(message.Id))
+            .Setup(x => x.GetByIdAsync(chat.Id, message.Id))
             .ReturnsAsync(message);
 
         var client = TestServerHelper.New(collection =>
@@ -138,7 +138,7 @@ public class PutMessageTests
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(x => x.GetByIdAsync(message.Id))
+            .Setup(x => x.GetByIdAsync(chat.Id, message.Id))
             .ReturnsAsync(message);
 
         var client = TestServerHelper.New(collection =>

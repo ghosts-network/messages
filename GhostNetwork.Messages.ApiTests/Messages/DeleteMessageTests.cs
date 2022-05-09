@@ -23,7 +23,7 @@ public class DeleteMessageTests
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(c => c.DeleteAsync(messageId))
+            .Setup(c => c.DeleteAsync(chatId, messageId))
             .ReturnsAsync(true);
 
         var client = TestServerHelper.New(collection =>
@@ -50,7 +50,7 @@ public class DeleteMessageTests
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(c => c.DeleteAsync(messageId))
+            .Setup(c => c.DeleteAsync(chatId, messageId))
             .ReturnsAsync(false);
 
         var client = TestServerHelper.New(collection =>
@@ -77,7 +77,7 @@ public class DeleteMessageTests
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(c => c.DeleteAsync(messageId))
+            .Setup(c => c.DeleteAsync(chatId, messageId))
             .ReturnsAsync(true);
 
         var client = TestServerHelper.New(collection =>

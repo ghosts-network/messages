@@ -106,7 +106,7 @@ public class ChatsController : ControllerBase
         var chat = new Chat(ObjectId.GenerateNewId(), model.Name, participants);
         await chatsStorage.InsertAsync(chat);
 
-        return Created(Url.Action("GetById", new { chat.Id }) ?? string.Empty, chat);
+        return Created(Url.Action("GetById", new { chat.Id })!, chat);
     }
 
     /// <summary>

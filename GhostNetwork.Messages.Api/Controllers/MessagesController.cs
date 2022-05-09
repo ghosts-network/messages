@@ -55,20 +55,24 @@ public class MessagesController : ControllerBase
     /// <summary>
     /// Get message by id
     /// </summary>
+    /// <param name="chatId">Chat id</param>
     /// <param name="messageId">Message id</param>
     /// <response code="200">Message</response>
     /// <response code="404">Message is not found</response>
     [HttpGet("{chatId}/messages/{messageId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Message>> GetByIdAsync([FromRoute] string messageId)
+    public async Task<ActionResult<Message>> GetByIdAsync(
+        [FromRoute] string chatId,
+        [FromRoute] string messageId)
     {
-        if (!ObjectId.TryParse(messageId, out var objectId))
+        if (!ObjectId.TryParse(messageId, out var messageObjectId)
+            || !ObjectId.TryParse(chatId, out var chatObjectId))
         {
             return NotFound();
         }
 
-        var message = await messagesStorage.GetByIdAsync(objectId);
+        var message = await messagesStorage.GetByIdAsync(chatObjectId, messageObjectId);
 
         if (message is null)
         {
@@ -116,12 +120,14 @@ public class MessagesController : ControllerBase
         await messagesStorage.InsertAsync(message);
 
         await chatsStorage.ReorderAsync(chat.Id);
-        return Created(Url.Action("GetById", new { id = message.Id.ToString() }) ?? string.Empty, await messagesStorage.GetByIdAsync(message.Id));
+        var dbMessage = await messagesStorage.GetByIdAsync(chat.Id, message.Id);
+        return Created(Url.Action("GetById", new { chatId = chat.Id, messageId = message.Id.ToString() })!, dbMessage);
     }
 
     /// <summary>
     /// Update message
     /// </summary>
+    /// <param name="chatId">Chat id</param>
     /// <param name="messageId">Message id</param>
     /// <param name="model">Updated model</param>
     /// <response code="204">Successfully updated</response>
@@ -132,15 +138,17 @@ public class MessagesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UpdateAsync(
+        [FromRoute] string chatId,
         [FromRoute] string messageId,
         [FromBody, Required] UpdateMessageModel model)
     {
-        if (!ObjectId.TryParse(messageId, out var messageObjectId))
+        if (!ObjectId.TryParse(messageId, out var messageObjectId)
+            || !ObjectId.TryParse(chatId, out var chatObjectId))
         {
             return NotFound();
         }
 
-        var message = await messagesStorage.GetByIdAsync(messageObjectId);
+        var message = await messagesStorage.GetByIdAsync(chatObjectId, messageObjectId);
 
         if (message is null)
         {
@@ -156,6 +164,7 @@ public class MessagesController : ControllerBase
     /// <summary>
     /// Delete message
     /// </summary>
+    /// <param name="chatId">Chat identifier</param>
     /// <param name="messageId">Message identifier</param>
     /// <response code="204">Message successfully deleted</response>
     /// <response code="404">Message is not found</response>
@@ -163,14 +172,16 @@ public class MessagesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpDelete("{chatId}/messages/{messageId}")]
     public async Task<ActionResult> DeleteAsync(
+        [FromRoute] string chatId,
         [FromRoute] string messageId)
     {
-        if (!ObjectId.TryParse(messageId, out var messageObjectId))
+        if (!ObjectId.TryParse(messageId, out var messageObjectId)
+            || !ObjectId.TryParse(chatId, out var chatObjectId))
         {
             return NotFound();
         }
 
-        if (await messagesStorage.DeleteAsync(messageObjectId))
+        if (await messagesStorage.DeleteAsync(chatObjectId, messageObjectId))
         {
             return NoContent();
         }

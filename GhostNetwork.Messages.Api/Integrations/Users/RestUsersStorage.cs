@@ -2,36 +2,20 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Users;
 using GhostNetwork.Profiles.Api;
-using GhostNetwork.Profiles.Client;
 using GhostNetwork.Profiles.Model;
 
-namespace GhostNetwork.Messages.Api.Helpers;
+namespace GhostNetwork.Messages.Api.Users;
 
-public class ProfilesApiUserProvider : IUserProvider
+public class RestUsersStorage : IUsersStorage
 {
     private readonly IProfilesApi profilesApi;
 
-    public ProfilesApiUserProvider(IProfilesApi profilesApi)
+    public RestUsersStorage(IProfilesApi profilesApi)
     {
         this.profilesApi = profilesApi;
-    }
-
-    public async Task<UserInfo> GetByIdAsync(Guid id)
-    {
-        try
-        {
-            var result = await profilesApi.GetByIdAsync(id);
-            return result == null
-                ? null
-                : new UserInfo(result.Id, $"{result.FirstName} {result.LastName}", result.ProfilePicture);
-        }
-        catch (ApiException ex) when (ex.ErrorCode == (int)HttpStatusCode.NotFound)
-        {
-            return null;
-        }
     }
 
     public async Task<IReadOnlyCollection<UserInfo>> SearchAsync(List<Guid> ids)

@@ -2,7 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace GhostNetwork.Messages.MongoDb;
+namespace GhostNetwork.Messages.Integrations.Messages;
 
 public class MessageEntity
 {

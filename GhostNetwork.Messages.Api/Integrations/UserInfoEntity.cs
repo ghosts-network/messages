@@ -1,7 +1,8 @@
 ﻿using System;
+using GhostNetwork.Messages.Users;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace GhostNetwork.Messages.MongoDb;
+namespace GhostNetwork.Messages.Integrations;
 
 public class UserInfoEntity
 {

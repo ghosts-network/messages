@@ -6,7 +6,7 @@ using GhostNetwork.Messages.Chats;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace GhostNetwork.Messages.MongoDb;
+namespace GhostNetwork.Messages.Integrations.Chats;
 
 public class MongoChatStorage : IChatsStorage
 {
@@ -17,7 +17,7 @@ public class MongoChatStorage : IChatsStorage
         this.context = context;
     }
 
-    public async Task<IEnumerable<Chat>> SearchAsync(ChatFilter filter, Pagination pagination)
+    public async Task<IEnumerable<Chat>> SearchAsync(Filter filter, Pagination pagination)
     {
         if (!ObjectId.TryParse(pagination.Cursor, out var cursor))
         {
@@ -39,9 +39,9 @@ public class MongoChatStorage : IChatsStorage
         return chats.Select(entity => (Chat)entity).ToList();
     }
 
-    public async Task<Chat> GetByIdAsync(Id id)
+    public async Task<Chat> GetByIdAsync(ObjectId id)
     {
-        var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id.ToObjectId());
+        var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
         var entity = await context.Chat.Find(filter).FirstOrDefaultAsync();
 
@@ -52,7 +52,7 @@ public class MongoChatStorage : IChatsStorage
     {
         var entity = new ChatEntity
         {
-            Id = chat.Id.ToObjectId(),
+            Id = chat.Id,
             Name = chat.Name,
             Order = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             Participants = chat.Participants.Select(x => new UserInfoEntity()
@@ -70,7 +70,7 @@ public class MongoChatStorage : IChatsStorage
 
     public async Task UpdateAsync(Chat chat)
     {
-        var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chat.Id.ToObjectId());
+        var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, chat.Id);
 
         var update = Builders<ChatEntity>.Update
             .Set(p => p.Name, chat.Name)
@@ -79,19 +79,18 @@ public class MongoChatStorage : IChatsStorage
         await context.Chat.UpdateOneAsync(filter, update);
     }
 
-    public async Task DeleteAsync(Id id)
+    public async Task<bool> DeleteAsync(ObjectId id)
     {
-        var messageFilter = Builders<MessageEntity>.Filter.Eq(p => p.ChatId, id.ToObjectId());
-        var chatFilter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id.ToObjectId());
+        var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
-        await context.Message.DeleteManyAsync(messageFilter);
-        await context.Chat.DeleteOneAsync(chatFilter);
+        var result = await context.Chat.DeleteOneAsync(filter);
+        return result.DeletedCount > 0;
     }
 
-    public async Task ReorderAsync(Id id)
+    public async Task ReorderAsync(ObjectId id)
     {
         var filter = Builders<ChatEntity>.Filter
-            .Eq(p => p.Id, id.ToObjectId());
+            .Eq(p => p.Id, id);
 
         var update = Builders<ChatEntity>.Update
             .Set(p => p.Order, DateTimeOffset.UtcNow.ToUnixTimeSeconds());

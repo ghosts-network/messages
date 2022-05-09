@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Helpers;
+using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Messages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
+using Filter = GhostNetwork.Messages.Api.Domain.Filter;
 
 namespace GhostNetwork.Messages.Api.Controllers;
 
@@ -14,15 +16,13 @@ namespace GhostNetwork.Messages.Api.Controllers;
 [Route("chats")]
 public class MessagesController : ControllerBase
 {
-    private readonly IMessagesService messageService;
-    private readonly IChatsService chatsService;
-    private readonly IUserProvider userProvider;
+    private readonly IMessagesStorage messagesStorage;
+    private readonly IChatsStorage chatsStorage;
 
-    public MessagesController(IMessagesService messageService, IChatsService chatsService, IUserProvider userProvider)
+    public MessagesController(IMessagesStorage messagesStorage, IChatsStorage chatsStorage)
     {
-        this.messageService = messageService;
-        this.chatsService = chatsService;
-        this.userProvider = userProvider;
+        this.messagesStorage = messagesStorage;
+        this.chatsStorage = chatsStorage;
     }
 
     /// <summary>
@@ -39,10 +39,15 @@ public class MessagesController : ControllerBase
         [FromQuery] string cursor,
         [FromQuery, Range(1, 100)] int limit = 20)
     {
-        var filter = new MessageFilter(new Id(chatId));
+        if (!ObjectId.TryParse(chatId, out var chatObjectId))
+        {
+            return NotFound();
+        }
+
+        var filter = new Filter(chatObjectId);
         var paging = new Pagination(cursor, limit);
 
-        var messages = await messageService.SearchAsync(filter, paging);
+        var messages = await messagesStorage.SearchAsync(filter, paging);
 
         return Ok(messages);
     }
@@ -53,12 +58,17 @@ public class MessagesController : ControllerBase
     /// <param name="messageId">Message id</param>
     /// <response code="200">Message</response>
     /// <response code="404">Message is not found</response>
-    [HttpGet("messages/{messageId}")]
+    [HttpGet("{chatId}/messages/{messageId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Message>> GetByIdAsync([FromRoute] string messageId)
     {
-        var message = await messageService.GetByIdAsync(new Id(messageId));
+        if (!ObjectId.TryParse(messageId, out var objectId))
+        {
+            return NotFound();
+        }
+
+        var message = await messagesStorage.GetByIdAsync(objectId);
 
         if (message is null)
         {
@@ -84,28 +94,29 @@ public class MessagesController : ControllerBase
         [FromRoute] string chatId,
         [FromBody, Required] CreateMessageModel model)
     {
-        var chatIdentifier = new Id(chatId);
-        if (await chatsService.GetByIdAsync(chatIdentifier) == null)
+        if (!ObjectId.TryParse(chatId, out var chatObjectId))
         {
             return NotFound();
         }
 
-        var author = await userProvider.GetByIdAsync(model.SenderId);
-
-        if (author is null)
+        var chat = await chatsStorage.GetByIdAsync(chatObjectId);
+        if (chat == null)
         {
-            return BadRequest(new ProblemDetails { Title = "Author is not found" });
+            return NotFound();
         }
 
-        var (result, id) = await messageService.SendAsync(chatIdentifier, author, model.Message);
-
-        if (!result.Successed)
+        var author = chat.Participants.FirstOrDefault(p => p.Id == model.SenderId);
+        if (author == null)
         {
-            return BadRequest(result.ToProblemDetails());
+            return BadRequest(new ProblemDetails { Title = "Sender is not in chat" });
         }
 
-        await chatsService.ReorderAsync(chatIdentifier);
-        return Created(Url.Action("GetById", new { id }) ?? string.Empty, await messageService.GetByIdAsync(id));
+        var now = DateTimeOffset.UtcNow;
+        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, model.Content);
+        await messagesStorage.SendAsync(message);
+
+        await chatsStorage.ReorderAsync(chat.Id);
+        return Created(Url.Action("GetById", new { id = message.Id.ToString() }) ?? string.Empty, await messagesStorage.GetByIdAsync(message.Id));
     }
 
     /// <summary>
@@ -124,20 +135,20 @@ public class MessagesController : ControllerBase
         [FromRoute] string messageId,
         [FromBody, Required] UpdateMessageModel model)
     {
-        var messageIdentifier = new Id(messageId);
-        var message = await messageService.GetByIdAsync(messageIdentifier);
+        if (!ObjectId.TryParse(messageId, out var messageObjectId))
+        {
+            return NotFound();
+        }
+
+        var message = await messagesStorage.GetByIdAsync(messageObjectId);
 
         if (message is null)
         {
             return NotFound();
         }
 
-        var result = await messageService.UpdateAsync(messageIdentifier, model.Message, model.SenderId);
-
-        if (!result.Successed)
-        {
-            return BadRequest(result.ToProblemDetails());
-        }
+        message = message with { Content = model.Content };
+        await messagesStorage.UpdateAsync(message);
 
         return NoContent();
     }
@@ -150,24 +161,27 @@ public class MessagesController : ControllerBase
     /// <response code="404">Message is not found</response>
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpDelete("messages/{messageId}")]
+    [HttpDelete("{chatId}/messages/{messageId}")]
     public async Task<ActionResult> DeleteAsync(
         [FromRoute] string messageId)
     {
-        var messageIdentifier = new Id(messageId);
-        var message = await messageService.GetByIdAsync(messageIdentifier);
-
-        if (message is null)
+        if (!ObjectId.TryParse(messageId, out var messageObjectId))
         {
             return NotFound();
         }
 
-        await messageService.DeleteAsync(messageIdentifier);
+        if (await messagesStorage.DeleteAsync(messageObjectId))
+        {
+            return NoContent();
+        }
 
-        return NoContent();
+        return NotFound();
     }
 }
 
-public record CreateMessageModel([Required] Guid SenderId, [Required] string Message);
+public record CreateMessageModel(
+    [Required] Guid SenderId,
+    [Required, StringLength(500)] string Content);
 
-public record UpdateMessageModel([Required] Guid SenderId, [Required] string Message);
+public record UpdateMessageModel(
+    [Required, StringLength(500)] string Content);

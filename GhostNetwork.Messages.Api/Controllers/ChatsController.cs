@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Helpers;
+using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Chats;
+using GhostNetwork.Messages.Integrations;
+using GhostNetwork.Messages.Integrations.Chats;
+using GhostNetwork.Messages.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using Swashbuckle.AspNetCore.Filters;
+using Filter = GhostNetwork.Messages.Chats.Filter;
 
 namespace GhostNetwork.Messages.Api.Controllers;
 
@@ -15,13 +20,44 @@ namespace GhostNetwork.Messages.Api.Controllers;
 [Route("chats")]
 public class ChatsController : ControllerBase
 {
-    private readonly IChatsService chatService;
-    private readonly IUserProvider userProvider;
+    private readonly IChatsStorage chatsStorage;
+    private readonly IMessagesStorage messagesStorage;
+    private readonly IUsersStorage usersStorage;
 
-    public ChatsController(IChatsService chatService, IUserProvider userProvider)
+    public ChatsController(
+        IChatsStorage chatsStorage,
+        IMessagesStorage messagesStorage,
+        IUsersStorage usersStorage)
     {
-        this.chatService = chatService;
-        this.userProvider = userProvider;
+        this.chatsStorage = chatsStorage;
+        this.messagesStorage = messagesStorage;
+        this.usersStorage = usersStorage;
+    }
+
+    /// <summary>
+    /// Get chat by identifier
+    /// </summary>
+    /// <param name="id">Chat identifier</param>
+    /// <response code="200">Chat</response>
+    /// <response code="404">Chat not fount</response>
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Chat>> GetByIdAsync([FromRoute] string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return NotFound();
+        }
+
+        var entity = await chatsStorage.GetByIdAsync(objectId);
+
+        if (entity is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(entity);
     }
 
     /// <summary>
@@ -39,33 +75,12 @@ public class ChatsController : ControllerBase
         [FromQuery] string cursor,
         [FromQuery, Range(1, 100)] int limit = 20)
     {
-        var filter = new ChatFilter(userId);
+        var filter = new Filter(userId);
         var paging = new Pagination(cursor, limit);
 
-        var chats = await chatService.SearchAsync(filter, paging);
+        var chats = await chatsStorage.SearchAsync(filter, paging);
 
         return Ok(chats);
-    }
-
-    /// <summary>
-    /// Get chat by identifier
-    /// </summary>
-    /// <param name="id">Chat identifier</param>
-    /// <response code="200">Chat</response>
-    /// <response code="404">Chat not fount</response>
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Chat>> GetByIdAsync([FromRoute] string id)
-    {
-        var entity = await chatService.GetByIdAsync(new Id(id));
-
-        if (entity is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(entity);
     }
 
     /// <summary>
@@ -78,28 +93,32 @@ public class ChatsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPost]
-    public async Task<ActionResult<Chat>> CreateNewChatAsync([FromBody] CreateChatModel model)
+    public async Task<ActionResult<Chat>> CreateAsync([FromBody] CreateChatModel model)
     {
-        if (model.Participants == null || model.Participants.Count == 0)
-        {
-            return BadRequest(new ProblemDetails { Title = "Chat should have at least one participant" });
-        }
-
-        var participants = await userProvider.SearchAsync(model.Participants);
+        var participants = await usersStorage.SearchAsync(model.Participants);
         if (participants.Count != model.Participants.Count)
         {
             var invalidParticipants = model.Participants.Where(x => participants.All(p => p.Id != x)).ToList();
-            return BadRequest(new ProblemDetails { Title = $"Participants {string.Join(", ", invalidParticipants)} is not found" });
+            return BadRequest(new ProblemDetails
+            {
+                Title = $"Participants {string.Join(", ", invalidParticipants)} is not found"
+            });
         }
 
-        var (result, chat) = await chatService.CreateAsync(model.Name, participants);
-
-        if (result.Successed)
+        var chat = new ChatEntity
         {
-            return Created(Url.Action("GetById", new { chat.Id }) ?? string.Empty, chat);
-        }
+            Id = ObjectId.GenerateNewId(),
+            Name = model.Name,
+            Participants = participants.Select(p => new UserInfoEntity
+            {
+                Id = p.Id,
+                FullName = p.FullName,
+                AvatarUrl = p.AvatarUrl
+            }).ToList(),
+            Order = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        };
 
-        return BadRequest(result.ToProblemDetails());
+        return Created(Url.Action("GetById", new { chat.Id }) ?? string.Empty, chat);
     }
 
     /// <summary>
@@ -116,31 +135,26 @@ public class ChatsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateAsync([FromRoute] string id, [FromBody] UpdateChatModel model)
     {
-        var chat = await chatService.GetByIdAsync(new Id(id));
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return NotFound();
+        }
+
+        var chat = await chatsStorage.GetByIdAsync(objectId);
         if (chat is null)
         {
             return NotFound();
         }
 
-        if (model.Participants == null || model.Participants.Count == 0)
-        {
-            return BadRequest(new ProblemDetails { Title = "Chat should have at least one participant" });
-        }
-
-        var participants = await userProvider.SearchAsync(model.Participants);
+        var participants = await usersStorage.SearchAsync(model.Participants);
         if (participants.Count != model.Participants.Count)
         {
             var invalidParticipants = model.Participants.Where(x => participants.All(p => p.Id != x)).ToList();
             return BadRequest(new ProblemDetails { Title = $"Participants {string.Join(", ", invalidParticipants)} is not found" });
         }
 
-        chat.Update(model.Name, participants);
-        var result = await chatService.UpdateAsync(chat);
-
-        if (!result.Successed)
-        {
-            return BadRequest(result.ToProblemDetails());
-        }
+        chat = chat with { Name = model.Name, Participants = participants };
+        await chatsStorage.UpdateAsync(chat);
 
         return NoContent();
     }
@@ -154,21 +168,28 @@ public class ChatsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteChatAsync([FromRoute] string id)
+    public async Task<ActionResult> DeleteAsync([FromRoute] string id)
     {
-        var chat = await chatService.GetByIdAsync(new Id(id));
-
-        if (chat is null)
+        if (!ObjectId.TryParse(id, out var objectId))
         {
             return NotFound();
         }
 
-        await chatService.DeleteAsync(new Id(id));
+        if (!await chatsStorage.DeleteAsync(objectId))
+        {
+            return NotFound();
+        }
+
+        await messagesStorage.DeleteByChatAsync(objectId);
 
         return NoContent();
     }
 }
 
-public record CreateChatModel([Required] string Name, List<Guid> Participants);
+public record CreateChatModel(
+    [Required, StringLength(50)] string Name,
+    [Required, MinLength(2), MaxLength(20)] List<Guid> Participants);
 
-public record UpdateChatModel([Required] string Name, List<Guid> Participants);
+public record UpdateChatModel(
+    [Required, StringLength(50)] string Name,
+    [Required, MinLength(2), MaxLength(20)] List<Guid> Participants);

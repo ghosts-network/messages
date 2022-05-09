@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Domain;
 using GhostNetwork.Messages.Api.Controllers;
+using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Messages;
+using GhostNetwork.Messages.Users;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using Moq;
 using NUnit.Framework;
 
@@ -18,103 +19,135 @@ public class PutMessageTests
     public async Task UpdateMessage_NoContent()
     {
         // Arrange
-        var model = new UpdateMessageModel(Guid.NewGuid(), "message");
-        var chatId = new Id(Guid.NewGuid().ToString());
+        var model = new UpdateMessageModel("test");
+        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        {
+            new UserInfo(Guid.NewGuid(), "Test1", null),
+            new UserInfo(Guid.NewGuid(), "Test2", null)
+        });
         var now = DateTimeOffset.UtcNow;
-        var message = new Message(new Id(Guid.NewGuid().ToString()), chatId, new UserInfo(model.SenderId, "Name", null), now, now, model.Message);
+        var author = new UserInfo(Guid.NewGuid(), "Name", null);
+        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, "Test");
 
-        var chatsServiceMock = new Mock<IChatsService>();
-        var userMock = new Mock<IUserProvider>();
-        var serviceMock = new Mock<IMessagesService>();
+        var chatsStorageMock = new Mock<IChatsStorage>();
+        var messagesStorageMock = new Mock<IMessagesStorage>();
 
-        serviceMock
-            .Setup(x => x.UpdateAsync(message.Id, model.Message, model.SenderId))
-            .ReturnsAsync(DomainResult.Success);
-
-        serviceMock
+        messagesStorageMock
             .Setup(x => x.GetByIdAsync(message.Id))
             .ReturnsAsync(message);
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => chatsServiceMock.Object);
-            collection.AddScoped(_ => serviceMock.Object);
-            collection.AddScoped(_ => userMock.Object);
+            collection.AddScoped(_ => chatsStorageMock.Object);
+            collection.AddScoped(_ => messagesStorageMock.Object);
         });
 
         // Act
-        var response = await client.PutAsync($"/chats/{chatId}/messages/{message.Id}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chat.Id}/messages/{message.Id}", model.AsJsonContent());
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     [Test]
-    public async Task UpdateMessage_Author_NotFound()
+    public async Task UpdateMessage_NotFound_1()
     {
         // Arrange
-        var model = new UpdateMessageModel(Guid.NewGuid(), "Message");
-        var id = new Id(Guid.NewGuid().ToString());
-        var chatId = new Id(Guid.NewGuid().ToString());
+        var model = new UpdateMessageModel("test");
+        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        {
+            new UserInfo(Guid.NewGuid(), "Test1", null),
+            new UserInfo(Guid.NewGuid(), "Test2", null)
+        });
         var now = DateTimeOffset.UtcNow;
-        var message = new Message(id, chatId, new UserInfo(model.SenderId, It.IsAny<string>(), It.IsAny<string>()), now, now, model.Message);
+        var author = new UserInfo(Guid.NewGuid(), "Name", null);
+        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, "Test");
 
-        var chatsServiceMock = new Mock<IChatsService>();
-        var userServiceMock = new Mock<IUserProvider>();
-        var messageServiceMock = new Mock<IMessagesService>();
+        var chatsStorageMock = new Mock<IChatsStorage>();
+        var messagesStorageMock = new Mock<IMessagesStorage>();
 
-        userServiceMock
-            .Setup(x => x.GetByIdAsync(model.SenderId))
-            .ReturnsAsync(default(UserInfo));
+        messagesStorageMock
+            .Setup(x => x.GetByIdAsync(message.Id))
+            .ReturnsAsync(default(Message));
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => chatsServiceMock.Object);
-            collection.AddScoped(_ => messageServiceMock.Object);
-            collection.AddScoped(_ => userServiceMock.Object);
+            collection.AddScoped(_ => chatsStorageMock.Object);
+            collection.AddScoped(_ => messagesStorageMock.Object);
         });
 
         // Act
-        var response = await client.PutAsync($"/chats/{chatId}/messages/{message.Id}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chat.Id}/messages/{message.Id}", model.AsJsonContent());
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Test]
-    public async Task UpdateMessage_NullMessage_BadRequest()
+    public async Task UpdateMessage_NotFound_2()
     {
         // Arrange
-        var model = new UpdateMessageModel(Guid.NewGuid(), null);
-        var chatId = new Id(Guid.NewGuid().ToString());
+        var model = new UpdateMessageModel("test");
+        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        {
+            new UserInfo(Guid.NewGuid(), "Test1", null),
+            new UserInfo(Guid.NewGuid(), "Test2", null)
+        });
         var now = DateTimeOffset.UtcNow;
-        var message = new Message(new Id(Guid.NewGuid().ToString()), chatId, new UserInfo(model.SenderId, "Name", null), now, now, model.Message);
+        var author = new UserInfo(Guid.NewGuid(), "Name", null);
+        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, "Test");
 
-        var chatsServiceMock = new Mock<IChatsService>();
-        var userServiceMock = new Mock<IUserProvider>();
-        var messageServiceMock = new Mock<IMessagesService>();
+        var chatsStorageMock = new Mock<IChatsStorage>();
+        var messagesStorageMock = new Mock<IMessagesStorage>();
 
-        userServiceMock
-            .Setup(x => x.GetByIdAsync(model.SenderId))
-            .ReturnsAsync(new UserInfo(model.SenderId, "Name", null));
-
-        messageServiceMock
-            .Setup(x => x.UpdateAsync(message.Id, model.Message, model.SenderId))
-            .ReturnsAsync(DomainResult.Error("Null message"));
-
-        messageServiceMock
+        messagesStorageMock
             .Setup(x => x.GetByIdAsync(message.Id))
             .ReturnsAsync(message);
 
         var client = TestServerHelper.New(collection =>
         {
-            collection.AddScoped(_ => chatsServiceMock.Object);
-            collection.AddScoped(_ => messageServiceMock.Object);
-            collection.AddScoped(_ => userServiceMock.Object);
+            collection.AddScoped(_ => chatsStorageMock.Object);
+            collection.AddScoped(_ => messagesStorageMock.Object);
         });
 
         // Act
-        var response = await client.PutAsync($"/chats/{chatId}/messages/{message.Id}", model.AsJsonContent());
+        var response = await client.PutAsync($"/chats/{chat.Id}/messages/invalid_id", model.AsJsonContent());
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus")]
+    public async Task UpdateMessage_InvalidContent_BadRequest(string content)
+    {
+        // Arrange
+        var model = new UpdateMessageModel(content);
+        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        {
+            new UserInfo(Guid.NewGuid(), "Test1", null),
+            new UserInfo(Guid.NewGuid(), "Test2", null)
+        });
+        var now = DateTimeOffset.UtcNow;
+        var author = new UserInfo(Guid.NewGuid(), "Name", null);
+        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, "Test");
+
+        var chatsStorageMock = new Mock<IChatsStorage>();
+        var messagesStorageMock = new Mock<IMessagesStorage>();
+
+        messagesStorageMock
+            .Setup(x => x.GetByIdAsync(message.Id))
+            .ReturnsAsync(message);
+
+        var client = TestServerHelper.New(collection =>
+        {
+            collection.AddScoped(_ => chatsStorageMock.Object);
+            collection.AddScoped(_ => messagesStorageMock.Object);
+        });
+
+        // Act
+        var response = await client.PutAsync($"/chats/{chat.Id}/messages/{message.Id}", model.AsJsonContent());
 
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);

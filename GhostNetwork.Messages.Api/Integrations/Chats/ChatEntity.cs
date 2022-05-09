@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using GhostNetwork.Messages.Chats;
+using GhostNetwork.Messages.Users;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace GhostNetwork.Messages.MongoDb;
+namespace GhostNetwork.Messages.Integrations.Chats;
 
 public class ChatEntity
 {
@@ -24,7 +25,7 @@ public class ChatEntity
         return entity == null
             ? null
             : new Chat(
-                entity.Id.ToId(),
+                entity.Id,
                 entity.Name,
                 entity.Participants.Select(p => (UserInfo)p).ToList());
     }

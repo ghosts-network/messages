@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace GhostNetwork.Messages;
+namespace GhostNetwork.Messages.Users;
 
-public interface IUserProvider
+public interface IUsersStorage
 {
-    Task<UserInfo> GetByIdAsync(Guid id);
-
     Task<IReadOnlyCollection<UserInfo>> SearchAsync(List<Guid> ids);
 }

@@ -1,10 +1,12 @@
 using System;
-using Domain.Validation;
-using GhostNetwork.Messages.Api.Helpers;
+using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Api.Helpers.OpenApi;
+using GhostNetwork.Messages.Api.Users;
 using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Messages;
-using GhostNetwork.Messages.MongoDb;
+using GhostNetwork.Messages.Integrations;
+using GhostNetwork.Messages.Integrations.Chats;
+using GhostNetwork.Messages.Integrations.Messages;
+using GhostNetwork.Messages.Users;
 using GhostNetwork.Profiles.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -60,18 +62,14 @@ namespace GhostNetwork.Messages.Api
                 return new MongoDbContext(client.GetDatabase(mongoUrl.DatabaseName ?? DefaultDbName));
             });
 
-            services.AddSingleton<IIdProvider, ObjectIdProvider>();
+            services.AddScoped<IChatsStorage, MongoChatStorage>(provider =>
+                new MongoChatStorage(provider.GetRequiredService<MongoDbContext>()));
 
-            services.AddScoped<IChatsStorage, MongoChatStorage>();
-            services.AddScoped<IChatsService, ChatsService>();
-            services.AddScoped<IValidator<Chat>, ChatValidator>();
+            services.AddScoped<IMessagesStorage, MongoMessageStorage>(provider =>
+                new MongoMessageStorage(provider.GetRequiredService<MongoDbContext>()));
 
-            services.AddScoped<IMessagesStorage, MongoMessageStorage>();
-            services.AddScoped<IMessagesService, MessagesService>();
-            services.AddScoped<IValidator<MessageContext>, MessageValidator>();
-
-            services.AddScoped<IProfilesApi>(_ => new ProfilesApi(Configuration["PROFILES_ADDRESS"]));
-            services.AddScoped<IUserProvider, ProfilesApiUserProvider>();
+            services.AddScoped<IUsersStorage, RestUsersStorage>(_ =>
+                new RestUsersStorage(new ProfilesApi(Configuration["PROFILES_ADDRESS"])));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider provider)

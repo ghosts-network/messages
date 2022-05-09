@@ -2,4 +2,4 @@ using System;
 
 namespace GhostNetwork.Messages.Chats;
 
-public record ChatFilter(Guid UserId);
+public record Filter(Guid UserId);

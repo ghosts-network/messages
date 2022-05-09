@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <CodeAnalysisRuleSet>../../GhostNetwork.ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet>../GhostNetwork.ruleset</CodeAnalysisRuleSet>
         <Nullable>enable</Nullable>
 
         <IsPackable>false</IsPackable>
@@ -22,8 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\GhostNetwork.Messages.Api\GhostNetwork.Messages.Api.csproj" />
-      <ProjectReference Include="..\..\GhostNetwork.Messages\GhostNetwork.Messages.csproj" />
+      <ProjectReference Include="..\GhostNetwork.Messages.Api\GhostNetwork.Messages.Api.csproj" />
     </ItemGroup>
 
 </Project>

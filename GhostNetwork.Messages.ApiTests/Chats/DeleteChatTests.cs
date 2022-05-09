@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Chats;

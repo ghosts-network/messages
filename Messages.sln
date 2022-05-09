@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{37AAB735
 		tests\load-tests.js = tests\load-tests.js
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GhostNetwork.Messages.ApiTests", "tests\GhostNetwork.Messages.ApiTests\GhostNetwork.Messages.ApiTests.csproj", "{D780A411-20FB-4C3C-A7C9-BE48AE54382C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GhostNetwork.Messages.ApiTests", "GhostNetwork.Messages.ApiTests\GhostNetwork.Messages.ApiTests.csproj", "{D780A411-20FB-4C3C-A7C9-BE48AE54382C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

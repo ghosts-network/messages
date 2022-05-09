@@ -44,6 +44,9 @@ public class PostChatTests
         var response = await client.PostAsync("/chats/", model.AsJsonContent());
 
         // Assert
+        chatsStorageMock
+            .Verify(x => x.InsertAsync(It.IsAny<Chat>()), Times.Once());
+
         Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
     }
 

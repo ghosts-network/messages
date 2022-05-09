@@ -10,7 +10,7 @@ public interface IMessagesStorage
 
     Task<Message> GetByIdAsync(ObjectId id);
 
-    Task SendAsync(Message message);
+    Task InsertAsync(Message message);
 
     Task UpdateAsync(Message message);
 

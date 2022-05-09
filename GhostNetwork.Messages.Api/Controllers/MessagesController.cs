@@ -113,7 +113,7 @@ public class MessagesController : ControllerBase
 
         var now = DateTimeOffset.UtcNow;
         var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, model.Content);
-        await messagesStorage.SendAsync(message);
+        await messagesStorage.InsertAsync(message);
 
         await chatsStorage.ReorderAsync(chat.Id);
         return Created(Url.Action("GetById", new { id = message.Id.ToString() }) ?? string.Empty, await messagesStorage.GetByIdAsync(message.Id));

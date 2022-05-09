@@ -48,7 +48,7 @@ public class MongoMessageStorage : IMessagesStorage
         return entity is null ? null : ToDomain(entity);
     }
 
-    public async Task SendAsync(Message message)
+    public async Task InsertAsync(Message message)
     {
         var entity = new MessageEntity
         {

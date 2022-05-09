@@ -5,8 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Integrations;
-using GhostNetwork.Messages.Integrations.Chats;
 using GhostNetwork.Messages.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -105,18 +103,8 @@ public class ChatsController : ControllerBase
             });
         }
 
-        var chat = new ChatEntity
-        {
-            Id = ObjectId.GenerateNewId(),
-            Name = model.Name,
-            Participants = participants.Select(p => new UserInfoEntity
-            {
-                Id = p.Id,
-                FullName = p.FullName,
-                AvatarUrl = p.AvatarUrl
-            }).ToList(),
-            Order = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-        };
+        var chat = new Chat(ObjectId.GenerateNewId(), model.Name, participants);
+        await chatsStorage.InsertAsync(chat);
 
         return Created(Url.Action("GetById", new { chat.Id }) ?? string.Empty, chat);
     }

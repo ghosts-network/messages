@@ -41,6 +41,7 @@ public class PostMessageTests
         var response = await client.PostAsync($"/chats/{chat.Id}/messages", model.AsJsonContent());
 
         // Assert
+        messagesStorageMock.Verify(x => x.InsertAsync(It.IsAny<Message>()), Times.Once());
         Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
     }
 

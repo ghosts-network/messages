@@ -46,6 +46,7 @@ public class PutMessageTests
         var response = await client.PutAsync($"/chats/{chat.Id}/messages/{message.Id}", model.AsJsonContent());
 
         // Assert
+        messagesStorageMock.Verify(x => x.UpdateAsync(It.IsAny<Message>()), Times.Once());
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
 

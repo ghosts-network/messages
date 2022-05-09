@@ -48,7 +48,7 @@ public class MongoChatStorage : IChatsStorage
         return (Chat)entity;
     }
 
-    public async Task<Chat> CreateAsync(Chat chat)
+    public async Task<Chat> InsertAsync(Chat chat)
     {
         var entity = new ChatEntity
         {

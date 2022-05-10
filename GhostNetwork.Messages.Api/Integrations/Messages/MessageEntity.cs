@@ -15,10 +15,12 @@ public class MessageEntity
     public UserInfoEntity Author { get; set; }
 
     [BsonElement("sentOn")]
+    [BsonRepresentation(BsonType.String)]
     public DateTimeOffset SentOn { get; set; }
 
-    [BsonElement("lastUpdateOn")]
-    public DateTimeOffset LastUpdateOn { get; set; }
+    [BsonElement("updatedOn")]
+    [BsonRepresentation(BsonType.String)]
+    public DateTimeOffset UpdatedOn { get; set; }
 
     [BsonElement("content")]
     public string Content { get; set; }

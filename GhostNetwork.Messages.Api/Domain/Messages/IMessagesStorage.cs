@@ -6,7 +6,7 @@ namespace GhostNetwork.Messages.Api.Domain;
 
 public interface IMessagesStorage
 {
-    Task<IEnumerable<Message>> SearchAsync(Filter filter, Pagination pagination);
+    Task<IReadOnlyCollection<Message>> SearchAsync(Filter filter, Pagination pagination);
 
     Task<Message> GetByIdAsync(ObjectId chatId, ObjectId id);
 

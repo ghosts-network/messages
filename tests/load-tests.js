@@ -1,22 +1,23 @@
 import http from 'k6/http';
-import { sleep } from 'k6';
 
+const baseUrl = 'http://localhost:5252';
 const messagesPerChat = 20;
 
 export const options = {
     vus: 50,
-    duration: '30s',
+    duration: '300s',
 };
 
 export default function () {
     const chat = createChat();
     for (let i = 0; i < messagesPerChat; i++) {
         sendMessage(chat.id, 'Hello, world!');
+        getMessages(chat.id);
     }
 }
 
 function sendMessage(chatId, content) {
-    const url = 'http://localhost:5252/chats/' + chatId + '/messages';
+    const url = `${baseUrl}/chats/${chatId}/messages`;
     const payload = JSON.stringify({
         content: content,
         senderId: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
@@ -30,8 +31,14 @@ function sendMessage(chatId, content) {
     http.post(url, payload, params);
 }
 
+function getMessages(chatId) {
+    const url = `${baseUrl}/chats/${chatId}/messages`;
+    
+    return http.get(url);
+}
+
 function createChat() {
-    const url = 'http://localhost:5252/chats/';
+    const url = `${baseUrl}/chats`;
     const payload = JSON.stringify({
         name: 'test',
         participants: ['3fa85f64-5717-4562-b3fc-2c963f66afa6', '3fa85f64-5717-4562-b3fc-2c963f66afa7'],

@@ -67,7 +67,7 @@ public class ChatsController : ControllerBase
     /// <response code="200">Exist user chats</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [SwaggerResponseHeader(StatusCodes.Status200OK, "X-TotalCount", "Number", "Total number of user chats")]
+    [SwaggerResponseHeader(StatusCodes.Status200OK, "X-Cursor", "string", "Next messages cursor")]
     public async Task<ActionResult<IEnumerable<Chat>>> SearchAsync(
         [FromQuery, Required] Guid userId,
         [FromQuery] string cursor,
@@ -77,6 +77,11 @@ public class ChatsController : ControllerBase
         var paging = new Pagination(cursor, limit);
 
         var chats = await chatsStorage.SearchAsync(filter, paging);
+
+        if (chats.Any())
+        {
+            Response.Headers.Add("X-Cursor", chats.Last().Id.ToString());
+        }
 
         return Ok(chats);
     }

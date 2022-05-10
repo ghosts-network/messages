@@ -8,6 +8,7 @@ using GhostNetwork.Messages.Chats;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using Swashbuckle.AspNetCore.Filters;
 using Filter = GhostNetwork.Messages.Api.Domain.Filter;
 
 namespace GhostNetwork.Messages.Api.Controllers;
@@ -34,6 +35,7 @@ public class MessagesController : ControllerBase
     /// <response code="200">Messages</response>
     [HttpGet("{chatId}/messages")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerResponseHeader(StatusCodes.Status200OK, "X-Cursor", "string", "Next messages cursor")]
     public async Task<ActionResult<IEnumerable<Message>>> SearchAsync(
         [FromRoute] string chatId,
         [FromQuery] string cursor,
@@ -48,6 +50,11 @@ public class MessagesController : ControllerBase
         var paging = new Pagination(cursor, limit);
 
         var messages = await messagesStorage.SearchAsync(filter, paging);
+
+        if (messages.Any())
+        {
+            Response.Headers.Add("X-Cursor", messages.Last().Id.ToString());
+        }
 
         return Ok(messages);
     }

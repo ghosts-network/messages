@@ -17,7 +17,7 @@ public class MongoMessageStorage : IMessagesStorage
         this.context = context;
     }
 
-    public async Task<IEnumerable<Message>> SearchAsync(Filter filter, Pagination pagination)
+    public async Task<IReadOnlyCollection<Message>> SearchAsync(Filter filter, Pagination pagination)
     {
         if (!ObjectId.TryParse(pagination.Cursor, out var cursor))
         {
@@ -26,9 +26,9 @@ public class MongoMessageStorage : IMessagesStorage
 
         var f = Builders<MessageEntity>.Filter.Eq(m => m.ChatId, filter.ChatId);
         var p = cursor != ObjectId.Empty
-            ? Builders<MessageEntity>.Filter.Gt(c => c.Id, cursor)
+            ? Builders<MessageEntity>.Filter.Lt(c => c.Id, cursor)
             : Builders<MessageEntity>.Filter.Empty;
-        var s = Builders<MessageEntity>.Sort.Descending(m => m.SentOn);
+        var s = Builders<MessageEntity>.Sort.Descending(m => m.Id);
 
         var messages = await context.Messages
             .Find(f & p)
@@ -57,6 +57,7 @@ public class MongoMessageStorage : IMessagesStorage
             ChatId = message.ChatId,
             Author = (UserInfoEntity)message.Author,
             SentOn = message.SentOn,
+            UpdatedOn = message.UpdatedOn,
             Content = message.Content
         };
 
@@ -68,7 +69,7 @@ public class MongoMessageStorage : IMessagesStorage
         var filter = Builders<MessageEntity>.Filter.Eq(p => p.Id, message.Id);
 
         var update = Builders<MessageEntity>.Update
-            .Set(p => p.LastUpdateOn, message.UpdatedOn)
+            .Set(p => p.UpdatedOn, message.UpdatedOn)
             .Set(p => p.Content, message.Content);
 
         await context.Messages.UpdateOneAsync(filter, update);
@@ -97,7 +98,7 @@ public class MongoMessageStorage : IMessagesStorage
             entity.ChatId,
             (UserInfo)entity.Author,
             entity.SentOn,
-            entity.LastUpdateOn,
+            entity.UpdatedOn,
             entity.Content);
     }
 }

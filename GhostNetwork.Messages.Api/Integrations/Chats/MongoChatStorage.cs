@@ -17,7 +17,7 @@ public class MongoChatStorage : IChatsStorage
         this.context = context;
     }
 
-    public async Task<IEnumerable<Chat>> SearchAsync(Filter filter, Pagination pagination)
+    public async Task<IReadOnlyCollection<Chat>> SearchAsync(Filter filter, Pagination pagination)
     {
         if (!ObjectId.TryParse(pagination.Cursor, out var cursor))
         {

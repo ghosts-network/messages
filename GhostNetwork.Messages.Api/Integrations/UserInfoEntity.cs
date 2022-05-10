@@ -1,5 +1,6 @@
 ﻿using System;
 using GhostNetwork.Messages.Users;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace GhostNetwork.Messages.Integrations;
@@ -7,6 +8,7 @@ namespace GhostNetwork.Messages.Integrations;
 public class UserInfoEntity
 {
     [BsonElement("id")]
+    [BsonRepresentation(BsonType.String)]
     public Guid Id { get; set; }
 
     [BsonElement("fullName")]

@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  db:
+    image: mvertes/alpine-mongo
+
+  api:
+    build: .
+    ports:
+      - "5300:80"
+    depends_on:
+      - db
+    environment:
+      - MONGO_CONNECTION=mongodb://db:27017/gmessages
+      - ASPNETCORE_ENVIRONMENT=Development
+  
+  profiles:
+    image: ghcr.io/ghosts-network/profiles:latest
+    ports:
+      - "5400:80"
+    depends_on:
+      - db
+    environment:
+      - MONGO_CONNECTION=mongodb://db:27017/gprofiles

@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Swashbuckle.AspNetCore.Filters;
 
@@ -57,6 +58,8 @@ namespace GhostNetwork.Messages.Api
 
                 options.IncludeXmlComments(XmlPathProvider.XmlPath);
                 options.OperationFilter<AddResponseHeadersFilter>();
+                options.OperationFilter<OperationIdFilter>();
+                options.MapType<ObjectId>(() => new OpenApiSchema { Type = "string" });
             });
 
             services.AddScoped(_ =>

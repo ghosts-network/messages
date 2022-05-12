@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.Json;
 using GhostNetwork.Messages.Api;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,10 +23,5 @@ public static class TestServerHelper
     public static StringContent AsJsonContent<T>(this T input)
     {
         return new StringContent(JsonSerializer.Serialize(input), Encoding.Default, "application/json");
-    }
-
-    public static ProblemDetails AsProblemDetails(this HttpContent content)
-    {
-        return JsonSerializer.Deserialize<ProblemDetails>(content.ReadAsStringAsync().Result)!;
     }
 }

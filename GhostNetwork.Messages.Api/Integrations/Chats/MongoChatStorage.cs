@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Chats;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace GhostNetwork.Messages.Integrations.Chats;
@@ -19,15 +18,10 @@ public class MongoChatStorage : IChatsStorage
 
     public async Task<IReadOnlyCollection<Chat>> SearchAsync(Filter filter, Pagination pagination)
     {
-        if (!ObjectId.TryParse(pagination.Cursor, out var cursor))
-        {
-            cursor = ObjectId.Empty;
-        }
-
         var f = Builders<ChatEntity>.Filter.Where(c => c.Participants.Any(x => x.Id == filter.UserId));
-        var p = cursor != ObjectId.Empty
-            ? Builders<ChatEntity>.Filter.Lt(c => c.Id, cursor)
-            : Builders<ChatEntity>.Filter.Empty;
+        var p = string.IsNullOrEmpty(pagination.Cursor)
+            ? Builders<ChatEntity>.Filter.Empty
+            : Builders<ChatEntity>.Filter.Lt(c => c.Id, pagination.Cursor);
         var s = Builders<ChatEntity>.Sort.Descending(c => c.Order);
 
         var chats = await context.Chats
@@ -39,7 +33,7 @@ public class MongoChatStorage : IChatsStorage
         return chats.Select(entity => (Chat)entity).ToList();
     }
 
-    public async Task<Chat> GetByIdAsync(ObjectId id)
+    public async Task<Chat> GetByIdAsync(string id)
     {
         var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
@@ -79,7 +73,7 @@ public class MongoChatStorage : IChatsStorage
         await context.Chats.UpdateOneAsync(filter, update);
     }
 
-    public async Task<bool> DeleteAsync(ObjectId id)
+    public async Task<bool> DeleteAsync(string id)
     {
         var filter = Builders<ChatEntity>.Filter.Eq(p => p.Id, id);
 
@@ -87,7 +81,7 @@ public class MongoChatStorage : IChatsStorage
         return result.DeletedCount > 0;
     }
 
-    public async Task ReorderAsync(ObjectId id)
+    public async Task ReorderAsync(string id)
     {
         var filter = Builders<ChatEntity>.Filter
             .Eq(p => p.Id, id);

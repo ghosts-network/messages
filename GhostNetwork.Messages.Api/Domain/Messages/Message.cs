@@ -1,12 +1,11 @@
 using System;
 using GhostNetwork.Messages.Users;
-using MongoDB.Bson;
 
-namespace GhostNetwork.Messages.Api.Domain;
+namespace GhostNetwork.Messages.Domain;
 
 public record Message(
-    ObjectId Id,
-    ObjectId ChatId,
+    string Id,
+    string ChatId,
     UserInfo Author,
     DateTimeOffset SentOn,
     DateTimeOffset UpdatedOn,

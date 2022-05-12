@@ -1,5 +1,3 @@
-using MongoDB.Bson;
+namespace GhostNetwork.Messages.Domain;
 
-namespace GhostNetwork.Messages.Api.Domain;
-
-public record Filter(ObjectId? ChatId);
+public record Filter(string ChatId);

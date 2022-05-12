@@ -1,9 +1,7 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Users;
+using GhostNetwork.Messages.Domain;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Moq;
@@ -12,24 +10,21 @@ using NUnit.Framework;
 namespace GhostNetwork.Messages.ApiTests.Messages;
 
 [TestFixture]
-public class GetMessageTests
+public class DeleteTests
 {
     [Test]
-    public async Task GetById_Ok()
+    public async Task Deleted()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
-
-        var now = DateTimeOffset.UtcNow;
-        var author = new UserInfo(Guid.NewGuid(), "Name", null);
-        var message = new Message(ObjectId.GenerateNewId(), chatId, author, now, now, "Test");
+        var chatId = ObjectId.GenerateNewId().ToString();
+        var messageId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(c => c.GetByIdAsync(chatId, message.Id))
-            .ReturnsAsync(message);
+            .Setup(c => c.DeleteAsync(chatId, messageId))
+            .ReturnsAsync(true);
 
         var client = TestServerHelper.New(collection =>
         {
@@ -38,25 +33,25 @@ public class GetMessageTests
         });
 
         // Act
-        var response = await client.GetAsync($"/chats/{chatId}/messages/{message.Id}");
+        var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     [Test]
-    public async Task GetById_NotFound_1()
+    public async Task NotFound_1()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
-        var messageId = ObjectId.GenerateNewId();
+        var chatId = ObjectId.GenerateNewId().ToString();
+        var messageId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(c => c.GetByIdAsync(chatId, messageId))
-            .ReturnsAsync(default(Message));
+            .Setup(c => c.DeleteAsync(chatId, messageId))
+            .ReturnsAsync(false);
 
         var client = TestServerHelper.New(collection =>
         {
@@ -65,29 +60,25 @@ public class GetMessageTests
         });
 
         // Act
-        var response = await client.GetAsync($"/chats/{chatId}/messages/{messageId}");
+        var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Test]
-    public async Task GetById_NotFound_2()
+    public async Task NotFound_2()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
-        var messageId = ObjectId.GenerateNewId();
-
-        var now = DateTimeOffset.UtcNow;
-        var author = new UserInfo(Guid.NewGuid(), "Name", null);
-        var message = new Message(messageId, chatId, author, now, now, "Test");
+        var chatId = "invalid_id";
+        var messageId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
 
         messagesStorageMock
-            .Setup(c => c.GetByIdAsync(chatId, messageId))
-            .ReturnsAsync(message);
+            .Setup(c => c.DeleteAsync(chatId, messageId))
+            .ReturnsAsync(true);
 
         var client = TestServerHelper.New(collection =>
         {
@@ -96,7 +87,7 @@ public class GetMessageTests
         });
 
         // Act
-        var response = await client.GetAsync($"/chats/{chatId}/messages/invalid_id");
+        var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);

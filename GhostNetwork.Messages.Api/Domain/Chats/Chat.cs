@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using GhostNetwork.Messages.Users;
-using MongoDB.Bson;
 
 namespace GhostNetwork.Messages.Chats;
 
-public record Chat(ObjectId Id, string Name, IReadOnlyCollection<UserInfo> Participants);
+public record Chat(string Id, string Name, IReadOnlyCollection<UserInfo> Participants);

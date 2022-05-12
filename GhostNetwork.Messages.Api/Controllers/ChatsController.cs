@@ -43,12 +43,7 @@ public class ChatsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<Chat>> GetByIdAsync([FromRoute] string id)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
-        {
-            return NotFound();
-        }
-
-        var entity = await chatsStorage.GetByIdAsync(objectId);
+        var entity = await chatsStorage.GetByIdAsync(id);
 
         if (entity is null)
         {
@@ -80,7 +75,7 @@ public class ChatsController : ControllerBase
 
         if (chats.Any())
         {
-            Response.Headers.Add("X-Cursor", chats.Last().Id.ToString());
+            Response.Headers.Add("X-Cursor", chats.Last().Id);
         }
 
         return Ok(chats);
@@ -108,7 +103,7 @@ public class ChatsController : ControllerBase
             });
         }
 
-        var chat = new Chat(ObjectId.GenerateNewId(), model.Name, participants);
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), model.Name, participants);
         await chatsStorage.InsertAsync(chat);
 
         return Created(Url.Action("GetById", new { chat.Id })!, chat);
@@ -128,12 +123,7 @@ public class ChatsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateAsync([FromRoute] string id, [FromBody] UpdateChatModel model)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
-        {
-            return NotFound();
-        }
-
-        var chat = await chatsStorage.GetByIdAsync(objectId);
+        var chat = await chatsStorage.GetByIdAsync(id);
         if (chat is null)
         {
             return NotFound();
@@ -163,17 +153,12 @@ public class ChatsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteAsync([FromRoute] string id)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
+        if (!await chatsStorage.DeleteAsync(id))
         {
             return NotFound();
         }
 
-        if (!await chatsStorage.DeleteAsync(objectId))
-        {
-            return NotFound();
-        }
-
-        await messagesStorage.DeleteByChatAsync(objectId);
+        await messagesStorage.DeleteByChatAsync(id);
 
         return NoContent();
     }

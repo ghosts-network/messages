@@ -8,13 +8,13 @@ public interface IMessagesStorage
 {
     Task<IReadOnlyCollection<Message>> SearchAsync(Filter filter, Pagination pagination);
 
-    Task<Message> GetByIdAsync(ObjectId chatId, ObjectId id);
+    Task<Message> GetByIdAsync(string chatId, string id);
 
     Task InsertAsync(Message message);
 
     Task UpdateAsync(Message message);
 
-    Task<bool> DeleteAsync(ObjectId chatId, ObjectId id);
+    Task<bool> DeleteAsync(string chatId, string id);
 
-    Task DeleteByChatAsync(ObjectId chatId);
+    Task DeleteByChatAsync(string chatId);
 }

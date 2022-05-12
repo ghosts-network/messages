@@ -41,19 +41,14 @@ public class MessagesController : ControllerBase
         [FromQuery] string cursor,
         [FromQuery, Range(1, 100)] int limit = 20)
     {
-        if (!ObjectId.TryParse(chatId, out var chatObjectId))
-        {
-            return NotFound();
-        }
-
-        var filter = new Filter(chatObjectId);
+        var filter = new Filter(chatId);
         var paging = new Pagination(cursor, limit);
 
         var messages = await messagesStorage.SearchAsync(filter, paging);
 
         if (messages.Any())
         {
-            Response.Headers.Add("X-Cursor", messages.Last().Id.ToString());
+            Response.Headers.Add("X-Cursor", messages.Last().Id);
         }
 
         return Ok(messages);
@@ -73,13 +68,7 @@ public class MessagesController : ControllerBase
         [FromRoute] string chatId,
         [FromRoute] string messageId)
     {
-        if (!ObjectId.TryParse(messageId, out var messageObjectId)
-            || !ObjectId.TryParse(chatId, out var chatObjectId))
-        {
-            return NotFound();
-        }
-
-        var message = await messagesStorage.GetByIdAsync(chatObjectId, messageObjectId);
+        var message = await messagesStorage.GetByIdAsync(chatId, messageId);
 
         if (message is null)
         {
@@ -105,12 +94,7 @@ public class MessagesController : ControllerBase
         [FromRoute] string chatId,
         [FromBody, Required] CreateMessageModel model)
     {
-        if (!ObjectId.TryParse(chatId, out var chatObjectId))
-        {
-            return NotFound();
-        }
-
-        var chat = await chatsStorage.GetByIdAsync(chatObjectId);
+        var chat = await chatsStorage.GetByIdAsync(chatId);
         if (chat == null)
         {
             return NotFound();
@@ -123,12 +107,12 @@ public class MessagesController : ControllerBase
         }
 
         var now = DateTimeOffset.UtcNow;
-        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, model.Content);
+        var message = new Message(ObjectId.GenerateNewId().ToString(), chat.Id, author, now, now, model.Content);
         await messagesStorage.InsertAsync(message);
 
         await chatsStorage.ReorderAsync(chat.Id);
         var dbMessage = await messagesStorage.GetByIdAsync(chat.Id, message.Id);
-        return Created(Url.Action("GetById", new { chatId = chat.Id, messageId = message.Id.ToString() })!, dbMessage);
+        return Created(Url.Action("GetById", new { chatId = chat.Id, messageId = message.Id })!, dbMessage);
     }
 
     /// <summary>
@@ -149,13 +133,7 @@ public class MessagesController : ControllerBase
         [FromRoute] string messageId,
         [FromBody, Required] UpdateMessageModel model)
     {
-        if (!ObjectId.TryParse(messageId, out var messageObjectId)
-            || !ObjectId.TryParse(chatId, out var chatObjectId))
-        {
-            return NotFound();
-        }
-
-        var message = await messagesStorage.GetByIdAsync(chatObjectId, messageObjectId);
+        var message = await messagesStorage.GetByIdAsync(chatId, messageId);
 
         if (message is null)
         {
@@ -182,13 +160,7 @@ public class MessagesController : ControllerBase
         [FromRoute] string chatId,
         [FromRoute] string messageId)
     {
-        if (!ObjectId.TryParse(messageId, out var messageObjectId)
-            || !ObjectId.TryParse(chatId, out var chatObjectId))
-        {
-            return NotFound();
-        }
-
-        if (await messagesStorage.DeleteAsync(chatObjectId, messageObjectId))
+        if (await messagesStorage.DeleteAsync(chatId, messageId))
         {
             return NoContent();
         }

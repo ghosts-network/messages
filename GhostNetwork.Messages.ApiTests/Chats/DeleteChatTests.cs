@@ -17,7 +17,7 @@ public class DeleteChatTests
     public async Task DeleteChat_NoContent()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
+        var chatId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -45,7 +45,7 @@ public class DeleteChatTests
     public async Task DeleteChat_NotFount_1()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
+        var chatId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -70,17 +70,17 @@ public class DeleteChatTests
     }
 
     [Test]
-    public async Task DeleteChat_NoContent_2()
+    public async Task DeleteChat_NotFound_2()
     {
         // Arrange
-        var chatId = "invalid_object_id";
+        var chatId = "invalid_id";
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
         var userStorageMock = new Mock<IUsersStorage>();
 
         chatsStorageMock
-            .Setup(c => c.DeleteAsync(It.IsAny<ObjectId>()))
+            .Setup(c => c.DeleteAsync(chatId))
             .ReturnsAsync(true);
 
         var client = TestServerHelper.New(collection =>

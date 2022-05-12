@@ -16,8 +16,8 @@ public class DeleteMessageTests
     public async Task DeleteMessage_NoContent()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
-        var messageId = ObjectId.GenerateNewId();
+        var chatId = ObjectId.GenerateNewId().ToString();
+        var messageId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -43,8 +43,8 @@ public class DeleteMessageTests
     public async Task DeleteMessage_NotFound_1()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
-        var messageId = ObjectId.GenerateNewId();
+        var chatId = ObjectId.GenerateNewId().ToString();
+        var messageId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -70,8 +70,8 @@ public class DeleteMessageTests
     public async Task DeleteMessage_NotFound_2()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
-        var messageId = ObjectId.GenerateNewId();
+        var chatId = "invalid_chat_id";
+        var messageId = "invalid_id";
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -87,7 +87,7 @@ public class DeleteMessageTests
         });
 
         // Act
-        var response = await client.DeleteAsync($"/chats/{chatId}/messages/invalid_id");
+        var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);

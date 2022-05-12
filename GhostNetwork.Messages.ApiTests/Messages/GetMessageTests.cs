@@ -18,11 +18,11 @@ public class GetMessageTests
     public async Task GetById_Ok()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
+        var chatId = ObjectId.GenerateNewId().ToString();
 
         var now = DateTimeOffset.UtcNow;
         var author = new UserInfo(Guid.NewGuid(), "Name", null);
-        var message = new Message(ObjectId.GenerateNewId(), chatId, author, now, now, "Test");
+        var message = new Message(ObjectId.GenerateNewId().ToString(), chatId, author, now, now, "Test");
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -48,8 +48,8 @@ public class GetMessageTests
     public async Task GetById_NotFound_1()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
-        var messageId = ObjectId.GenerateNewId();
+        var chatId = ObjectId.GenerateNewId().ToString();
+        var messageId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -75,8 +75,8 @@ public class GetMessageTests
     public async Task GetById_NotFound_2()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
-        var messageId = ObjectId.GenerateNewId();
+        var chatId = ObjectId.GenerateNewId().ToString();
+        var messageId = ObjectId.GenerateNewId().ToString();
 
         var now = DateTimeOffset.UtcNow;
         var author = new UserInfo(Guid.NewGuid(), "Name", null);

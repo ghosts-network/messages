@@ -19,7 +19,7 @@ public class GetChatTests
     public async Task GetById_Ok()
     {
         // Arrange
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[]
         {
             new UserInfo(Guid.NewGuid(), "Test1", null),
             new UserInfo(Guid.NewGuid(), "Test2", null)
@@ -51,7 +51,7 @@ public class GetChatTests
     public async Task GetById_NotFound_1()
     {
         // Arrange
-        var chatId = ObjectId.GenerateNewId();
+        var chatId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -79,7 +79,7 @@ public class GetChatTests
     public async Task GetById_NotFound_2()
     {
         // Arrange
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[]
         {
             new UserInfo(Guid.NewGuid(), "Test1", null),
             new UserInfo(Guid.NewGuid(), "Test2", null)
@@ -112,7 +112,7 @@ public class GetChatTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[]
         {
             new UserInfo(Guid.NewGuid(), "Test1", null),
             new UserInfo(Guid.NewGuid(), "Test2", null)

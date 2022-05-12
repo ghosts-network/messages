@@ -20,14 +20,14 @@ public class PutMessageTests
     {
         // Arrange
         var model = new UpdateMessageModel("test");
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[]
         {
             new UserInfo(Guid.NewGuid(), "Test1", null),
             new UserInfo(Guid.NewGuid(), "Test2", null)
         });
         var now = DateTimeOffset.UtcNow;
         var author = new UserInfo(Guid.NewGuid(), "Name", null);
-        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, "Test");
+        var message = new Message(ObjectId.GenerateNewId().ToString(), chat.Id, author, now, now, "Test");
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -55,14 +55,14 @@ public class PutMessageTests
     {
         // Arrange
         var model = new UpdateMessageModel("test");
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[]
         {
             new UserInfo(Guid.NewGuid(), "Test1", null),
             new UserInfo(Guid.NewGuid(), "Test2", null)
         });
         var now = DateTimeOffset.UtcNow;
         var author = new UserInfo(Guid.NewGuid(), "Name", null);
-        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, "Test");
+        var message = new Message(ObjectId.GenerateNewId().ToString(), chat.Id, author, now, now, "Test");
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -89,14 +89,14 @@ public class PutMessageTests
     {
         // Arrange
         var model = new UpdateMessageModel("test");
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[]
         {
             new UserInfo(Guid.NewGuid(), "Test1", null),
             new UserInfo(Guid.NewGuid(), "Test2", null)
         });
         var now = DateTimeOffset.UtcNow;
         var author = new UserInfo(Guid.NewGuid(), "Name", null);
-        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, "Test");
+        var message = new Message(ObjectId.GenerateNewId().ToString(), chat.Id, author, now, now, "Test");
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -125,14 +125,14 @@ public class PutMessageTests
     {
         // Arrange
         var model = new UpdateMessageModel(content);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[]
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[]
         {
             new UserInfo(Guid.NewGuid(), "Test1", null),
             new UserInfo(Guid.NewGuid(), "Test2", null)
         });
         var now = DateTimeOffset.UtcNow;
         var author = new UserInfo(Guid.NewGuid(), "Name", null);
-        var message = new Message(ObjectId.GenerateNewId(), chat.Id, author, now, now, "Test");
+        var message = new Message(ObjectId.GenerateNewId().ToString(), chat.Id, author, now, now, "Test");
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();

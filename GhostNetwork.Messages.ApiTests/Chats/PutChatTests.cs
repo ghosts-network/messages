@@ -25,7 +25,7 @@ public class PutChatTests
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
         var p3 = new UserInfo(Guid.NewGuid(), "Test3", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
         var model = new UpdateChatModel("Chat name", new List<Guid> { p1.Id, p2.Id, p3.Id });
 
         var chatsStorageMock = new Mock<IChatsStorage>();
@@ -62,7 +62,7 @@ public class PutChatTests
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
         var p3 = new UserInfo(Guid.NewGuid(), "Test3", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
         var model = new UpdateChatModel("Chat name", new List<Guid> { p1.Id, p2.Id, p3.Id });
 
         var chatsStorageMock = new Mock<IChatsStorage>();
@@ -98,7 +98,7 @@ public class PutChatTests
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
         var p3 = new UserInfo(Guid.NewGuid(), "Test3", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
         var model = new UpdateChatModel("Chat name", new List<Guid> { p1.Id, p2.Id, p3.Id });
 
         var chatsStorageMock = new Mock<IChatsStorage>();
@@ -136,7 +136,7 @@ public class PutChatTests
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
         var p3 = new UserInfo(Guid.NewGuid(), "Test3", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
         var model = new UpdateChatModel(name, new List<Guid> { p1.Id, p2.Id, p3.Id });
 
         var chatsStorageMock = new Mock<IChatsStorage>();
@@ -172,7 +172,7 @@ public class PutChatTests
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
         var p3 = new UserInfo(Guid.NewGuid(), "Test3", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
         var model = new UpdateChatModel("Chat name", participants);
 
         var chatsStorageMock = new Mock<IChatsStorage>();
@@ -208,7 +208,7 @@ public class PutChatTests
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
         var p3 = new UserInfo(Guid.NewGuid(), "Test3", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
         var model = new UpdateChatModel("Chat name", new List<Guid> { p1.Id, p2.Id, p3.Id });
 
         var chatsStorageMock = new Mock<IChatsStorage>();

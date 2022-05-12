@@ -6,10 +6,13 @@ namespace GhostNetwork.Messages.Integrations.Messages;
 
 public class MessageEntity
 {
-    public ObjectId Id { get; set; }
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; }
 
     [BsonElement("chatId")]
-    public ObjectId ChatId { get; set; }
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string ChatId { get; set; }
 
     [BsonElement("author")]
     public UserInfoEntity Author { get; set; }

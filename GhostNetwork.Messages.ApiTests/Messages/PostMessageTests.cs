@@ -22,7 +22,7 @@ public class PostMessageTests
         var model = new CreateMessageModel(Guid.NewGuid(), "test");
         var p1 = new UserInfo(model.SenderId, "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -52,7 +52,7 @@ public class PostMessageTests
         var model = new CreateMessageModel(Guid.NewGuid(), "test");
         var p1 = new UserInfo(model.SenderId, "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -81,7 +81,7 @@ public class PostMessageTests
         var model = new CreateMessageModel(Guid.NewGuid(), "test");
         var p1 = new UserInfo(model.SenderId, "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -110,7 +110,7 @@ public class PostMessageTests
         var model = new CreateMessageModel(Guid.NewGuid(), "test");
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
@@ -141,7 +141,7 @@ public class PostMessageTests
         var model = new CreateMessageModel(Guid.NewGuid(), content);
         var p1 = new UserInfo(model.SenderId, "Test1", null);
         var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
-        var chat = new Chat(ObjectId.GenerateNewId(), "Test", new[] { p1, p2 });
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();

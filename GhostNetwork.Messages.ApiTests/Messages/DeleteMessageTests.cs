@@ -40,7 +40,7 @@ public class DeleteMessageTests
     }
 
     [Test]
-    public async Task DeleteMessage_NotFound_1()
+    public async Task DeleteMessage_NotFound()
     {
         // Arrange
         var chatId = ObjectId.GenerateNewId().ToString();
@@ -52,33 +52,6 @@ public class DeleteMessageTests
         messagesStorageMock
             .Setup(c => c.DeleteAsync(chatId, messageId))
             .ReturnsAsync(false);
-
-        var client = TestServerHelper.New(collection =>
-        {
-            collection.AddScoped(_ => chatsStorageMock.Object);
-            collection.AddScoped(_ => messagesStorageMock.Object);
-        });
-
-        // Act
-        var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
-
-        // Assert
-        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
-    }
-
-    [Test]
-    public async Task DeleteMessage_NotFound_2()
-    {
-        // Arrange
-        var chatId = "invalid_chat_id";
-        var messageId = "invalid_id";
-
-        var chatsStorageMock = new Mock<IChatsStorage>();
-        var messagesStorageMock = new Mock<IMessagesStorage>();
-
-        messagesStorageMock
-            .Setup(c => c.DeleteAsync(chatId, messageId))
-            .ReturnsAsync(true);
 
         var client = TestServerHelper.New(collection =>
         {

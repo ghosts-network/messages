@@ -1,6 +1,7 @@
 using System;
+using System.Net.Mime;
 using GhostNetwork.Messages.Api.Domain;
-using GhostNetwork.Messages.Api.Helpers;
+using GhostNetwork.Messages.Api.Handlers.Messages;
 using GhostNetwork.Messages.Api.Helpers.OpenApi;
 using GhostNetwork.Messages.Api.Users;
 using GhostNetwork.Messages.Chats;
@@ -11,12 +12,12 @@ using GhostNetwork.Messages.Users;
 using GhostNetwork.Profiles.Api;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using Swashbuckle.AspNetCore.Filters;
 
@@ -43,6 +44,7 @@ namespace GhostNetwork.Messages.Api
                 x.AddConsole();
             });
 
+            services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo
@@ -102,6 +104,41 @@ namespace GhostNetwork.Messages.Api
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints
+                    .MapGet("/chats/{chatId}/messages/{messageId}", GetByIdHandler.HandleAsync)
+                    .Produces<Chat>(contentType: MediaTypeNames.Application.Json)
+                    .Produces(StatusCodes.Status404NotFound, contentType: MediaTypeNames.Application.Json)
+                    .WithName("Messages_GetById")
+                    .WithTags("Messages");
+
+                endpoints
+                    .MapGet("/chats/{chatId}/messages", SearchHandler.HandleAsync)
+                    .Produces<Chat[]>(contentType: MediaTypeNames.Application.Json)
+                    .WithName("Messages_Search")
+                    .WithTags("Messages");
+
+                endpoints
+                    .MapPost("/chats/{chatId}/messages", CreateHandler.HandleAsync)
+                    .Produces<Chat>(StatusCodes.Status201Created, contentType: MediaTypeNames.Application.Json)
+                    .ProducesValidationProblem(contentType: MediaTypeNames.Application.Json)
+                    .WithName("Messages_Create")
+                    .WithTags("Messages");
+
+                endpoints
+                    .MapPut("/chats/{chatId}/messages/{messageId}", UpdateHandler.HandleAsync)
+                    .Produces(StatusCodes.Status204NoContent, contentType: MediaTypeNames.Application.Json)
+                    .ProducesValidationProblem(contentType: MediaTypeNames.Application.Json)
+                    .Produces(StatusCodes.Status404NotFound, contentType: MediaTypeNames.Application.Json)
+                    .WithName("Messages_Update")
+                    .WithTags("Messages");
+
+                endpoints
+                    .MapDelete("/chats/{chatId}/messages/{messageId}", DeleteHandler.HandleAsync)
+                    .Produces(StatusCodes.Status204NoContent, contentType: MediaTypeNames.Application.Json)
+                    .Produces(StatusCodes.Status404NotFound, contentType: MediaTypeNames.Application.Json)
+                    .WithName("Messages_Delete")
+                    .WithTags("Messages");
+
                 endpoints.MapControllers();
             });
         }

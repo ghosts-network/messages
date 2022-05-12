@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Controllers;
 using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Api.Handlers.Messages;
 using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Users;
 using Microsoft.Extensions.DependencyInjection;

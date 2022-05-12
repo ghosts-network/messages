@@ -1,8 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace GhostNetwork.Messages.Api.Handlers.Messages;
 
@@ -18,6 +19,16 @@ public static class SearchHandler
         if (limit is < 1 or > 100)
         {
             return Results.BadRequest(new ProblemDetails { Title = "Limit must be between 1 and 100" });
+        }
+
+        if (!ObjectId.TryParse(chatId, out _))
+        {
+            return Results.NotFound();
+        }
+
+        if (!ObjectId.TryParse(cursor, out _))
+        {
+            cursor = null;
         }
 
         var filter = new Filter(chatId);

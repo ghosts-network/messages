@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MongoDB.Bson;
 
-namespace GhostNetwork.Messages.Api.Domain;
+namespace GhostNetwork.Messages.Domain;
 
 public interface IMessagesStorage
 {

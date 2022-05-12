@@ -1,14 +1,14 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Chats;
+using GhostNetwork.Messages.Domain;
 using GhostNetwork.Messages.Users;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Moq;
 using NUnit.Framework;
-using Filter = GhostNetwork.Messages.Api.Domain.Filter;
+using Filter = GhostNetwork.Messages.Domain.Filter;
 
 namespace GhostNetwork.Messages.ApiTests.Messages;
 

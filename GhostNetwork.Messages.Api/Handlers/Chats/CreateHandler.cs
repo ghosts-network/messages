@@ -10,7 +10,7 @@ using MongoDB.Bson;
 
 namespace GhostNetwork.Messages.Api.Handlers.Chats;
 
-public class CreateHandler
+public static class CreateHandler
 {
     public static async Task<IResult> HandleAsync(
         [FromServices] IUsersStorage usersStorage,

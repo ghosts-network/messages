@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Api.Handlers.Chats;
 using GhostNetwork.Messages.Chats;
+using GhostNetwork.Messages.Domain;
 using GhostNetwork.Messages.Users;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -56,7 +56,7 @@ public class UpdateTests
     }
 
     [Test]
-    public async Task NotFound()
+    public async Task NotFound_1()
     {
         // Arrange
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
@@ -86,6 +86,43 @@ public class UpdateTests
 
         // Act
         var response = await client.PutAsync($"/chats/{chat.Id}/", model.AsJsonContent());
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Test]
+    public async Task NotFound_2()
+    {
+        // Arrange
+        var chatId = "invalid_id";
+        var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
+        var p2 = new UserInfo(Guid.NewGuid(), "Test2", null);
+        var p3 = new UserInfo(Guid.NewGuid(), "Test3", null);
+        var chat = new Chat(ObjectId.GenerateNewId().ToString(), "Test", new[] { p1, p2 });
+        var model = new UpdateChatModel("Chat name", new List<Guid> { p1.Id, p2.Id, p3.Id });
+
+        var chatsStorageMock = new Mock<IChatsStorage>();
+        var messagesStorageMock = new Mock<IMessagesStorage>();
+        var userStorageMock = new Mock<IUsersStorage>();
+
+        chatsStorageMock
+            .Setup(x => x.GetByIdAsync(chat.Id))
+            .ReturnsAsync(chat);
+
+        userStorageMock
+            .Setup(x => x.SearchAsync(new List<Guid> { p1.Id, p2.Id, p3.Id }))
+            .ReturnsAsync(new List<UserInfo> { p1, p2, p3 });
+
+        var client = TestServerHelper.New(collection =>
+        {
+            collection.AddScoped(_ => chatsStorageMock.Object);
+            collection.AddScoped(_ => messagesStorageMock.Object);
+            collection.AddScoped(_ => userStorageMock.Object);
+        });
+
+        // Act
+        var response = await client.PutAsync($"/chats/{chatId}", model.AsJsonContent());
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);

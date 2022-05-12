@@ -1,8 +1,8 @@
-using System;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace GhostNetwork.Messages.Api.Handlers.Messages;
 
@@ -13,6 +13,11 @@ public static class GetByIdHandler
         [FromRoute] string chatId,
         [FromRoute] string messageId)
     {
+        if (!ObjectId.TryParse(chatId, out _))
+        {
+            return Results.NotFound();
+        }
+
         var message = await messagesStorage.GetByIdAsync(chatId, messageId);
 
         return message is null

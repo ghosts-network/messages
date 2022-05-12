@@ -7,6 +7,7 @@ using GhostNetwork.Messages.Chats;
 using GhostNetwork.Messages.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace GhostNetwork.Messages.Api.Handlers.Chats;
 
@@ -31,6 +32,11 @@ public static class UpdateHandler
         if (model.Participants == null || model.Participants.Count == 0)
         {
             return Results.BadRequest(new ProblemDetails { Title = "Participants are required" });
+        }
+
+        if (!ObjectId.TryParse(id, out _))
+        {
+            return Results.NotFound();
         }
 
         var chat = await chatsStorage.GetByIdAsync(id);

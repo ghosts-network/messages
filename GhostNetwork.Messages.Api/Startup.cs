@@ -1,9 +1,9 @@
 using System;
 using System.Net.Mime;
-using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Api.Handlers.Messages;
 using GhostNetwork.Messages.Api.Users;
 using GhostNetwork.Messages.Chats;
+using GhostNetwork.Messages.Domain;
 using GhostNetwork.Messages.Integrations;
 using GhostNetwork.Messages.Integrations.Chats;
 using GhostNetwork.Messages.Integrations.Messages;
@@ -144,7 +144,7 @@ namespace GhostNetwork.Messages.Api
                     .Produces(StatusCodes.Status204NoContent, contentType: MediaTypeNames.Application.Json)
                     .Produces(StatusCodes.Status404NotFound, contentType: MediaTypeNames.Application.Json)
                     .WithName("Chats_Delete")
-                    .WithTags("Messages");
+                    .WithTags("Chats");
             });
         }
     }

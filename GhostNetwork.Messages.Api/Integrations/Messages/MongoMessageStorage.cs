@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Domain;
 using GhostNetwork.Messages.Users;
 using MongoDB.Driver;
 

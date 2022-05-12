@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.Json;
 using GhostNetwork.Messages.Api;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 

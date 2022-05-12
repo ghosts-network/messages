@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace GhostNetwork.Messages.Api.Handlers.Messages;
 
@@ -22,6 +23,11 @@ public static class UpdateHandler
         if (model.Content.Length > 500)
         {
             return Results.BadRequest(new ProblemDetails { Title = "Content is too long" });
+        }
+
+        if (!ObjectId.TryParse(chatId, out _))
+        {
+            return Results.NotFound();
         }
 
         var message = await messagesStorage.GetByIdAsync(chatId, messageId);

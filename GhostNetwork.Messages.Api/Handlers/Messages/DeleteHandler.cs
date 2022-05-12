@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace GhostNetwork.Messages.Api.Handlers.Messages;
 
@@ -12,11 +13,11 @@ public static class DeleteHandler
         [FromRoute] string chatId,
         [FromRoute] string messageId)
     {
-        if (await messagesStorage.DeleteAsync(chatId, messageId))
+        if (!ObjectId.TryParse(chatId, out _) || !await messagesStorage.DeleteAsync(chatId, messageId))
         {
-            return Results.NoContent();
+            return Results.NotFound();
         }
 
-        return Results.NotFound();
+        return Results.NoContent();
     }
 }

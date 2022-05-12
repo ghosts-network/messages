@@ -15,10 +15,10 @@ using NUnit.Framework;
 namespace GhostNetwork.Messages.ApiTests.Chats;
 
 [TestFixture]
-public class PostChatTests
+public class CreateTests
 {
     [Test]
-    public async Task CreateNewChat_Created()
+    public async Task Created()
     {
         // Arrange
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
@@ -53,7 +53,7 @@ public class PostChatTests
     [TestCase(null)]
     [TestCase("")]
     [TestCase("0123456789012345678900123456789001234567890012345678901", Description = "Too long name")]
-    public async Task CreateNewChat_InvalidName_BadRequest(string name)
+    public async Task InvalidName(string name)
     {
         // Arrange
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);
@@ -83,7 +83,7 @@ public class PostChatTests
     }
 
     [TestCaseSource(typeof(ParticipantCases))]
-    public async Task CreateNewChat_InvalidParticipants_BadRequests(List<Guid> participants)
+    public async Task InvalidParticipants(List<Guid> participants)
     {
         // Arrange
         var model = new CreateChatModel("Chat name", participants);
@@ -111,7 +111,7 @@ public class PostChatTests
     }
 
     [Test]
-    public async Task CreateNewChat_SomeParticipantsNotExists_BadRequest()
+    public async Task SomeParticipantsNotExists()
     {
         // Arrange
         var p1 = new UserInfo(Guid.NewGuid(), "Test1", null);

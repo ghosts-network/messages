@@ -13,7 +13,7 @@ using NUnit.Framework;
 namespace GhostNetwork.Messages.ApiTests.Messages;
 
 [TestFixture]
-public class PutMessageTests
+public class UpdateTests
 {
     [Test]
     public async Task UpdateMessage_NoContent()

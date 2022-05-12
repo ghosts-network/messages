@@ -17,6 +17,11 @@ public static class SearchHandler
         [FromQuery] string cursor,
         [FromQuery, Range(1, 100)] int limit = 20)
     {
+        if (limit is < 1 or > 100)
+        {
+            return Results.BadRequest(new ProblemDetails { Title = "Limit must be between 1 and 100" });
+        }
+
         var filter = new Filter(userId);
         var paging = new Pagination(cursor, limit);
 

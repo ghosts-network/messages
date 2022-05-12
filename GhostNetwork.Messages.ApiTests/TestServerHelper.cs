@@ -25,9 +25,4 @@ public static class TestServerHelper
     {
         return new StringContent(JsonSerializer.Serialize(input), Encoding.Default, "application/json");
     }
-
-    public static ProblemDetails AsProblemDetails(this HttpContent content)
-    {
-        return JsonSerializer.Deserialize<ProblemDetails>(content.ReadAsStringAsync().Result)!;
-    }
 }

@@ -2,68 +2,65 @@
 using System.Threading.Tasks;
 using GhostNetwork.Messages.Api.Domain;
 using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Users;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Moq;
 using NUnit.Framework;
 
-namespace GhostNetwork.Messages.ApiTests.Chats;
+namespace GhostNetwork.Messages.ApiTests.Messages;
 
 [TestFixture]
-public class DeleteChatTests
+public class DeleteTests
 {
     [Test]
-    public async Task DeleteChat_NoContent()
+    public async Task Deleted()
     {
         // Arrange
         var chatId = ObjectId.GenerateNewId().ToString();
+        var messageId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
-        var userStorageMock = new Mock<IUsersStorage>();
 
-        chatsStorageMock
-            .Setup(c => c.DeleteAsync(chatId))
+        messagesStorageMock
+            .Setup(c => c.DeleteAsync(chatId, messageId))
             .ReturnsAsync(true);
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => chatsStorageMock.Object);
             collection.AddScoped(_ => messagesStorageMock.Object);
-            collection.AddScoped(_ => userStorageMock.Object);
         });
 
         // Act
-        var response = await client.DeleteAsync($"/chats/{chatId}");
+        var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     [Test]
-    public async Task DeleteChat_NotFount()
+    public async Task DeleteMessage_NotFound()
     {
         // Arrange
         var chatId = ObjectId.GenerateNewId().ToString();
+        var messageId = ObjectId.GenerateNewId().ToString();
 
         var chatsStorageMock = new Mock<IChatsStorage>();
         var messagesStorageMock = new Mock<IMessagesStorage>();
-        var userStorageMock = new Mock<IUsersStorage>();
 
-        chatsStorageMock
-            .Setup(c => c.DeleteAsync(chatId))
+        messagesStorageMock
+            .Setup(c => c.DeleteAsync(chatId, messageId))
             .ReturnsAsync(false);
 
         var client = TestServerHelper.New(collection =>
         {
             collection.AddScoped(_ => chatsStorageMock.Object);
             collection.AddScoped(_ => messagesStorageMock.Object);
-            collection.AddScoped(_ => userStorageMock.Object);
         });
 
         // Act
-        var response = await client.DeleteAsync($"/chats/{chatId}");
+        var response = await client.DeleteAsync($"/chats/{chatId}/messages/{messageId}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);

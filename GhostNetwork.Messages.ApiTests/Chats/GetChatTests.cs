@@ -134,7 +134,7 @@ public class GetChatTests
         });
 
         // Act
-        var response = await client.GetAsync($"/chats/?userId={userId}");
+        var response = await client.GetAsync($"/chats?userId={userId}");
 
         // Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);

@@ -1,31 +1,32 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Chats;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GhostNetwork.Messages.Api.Handlers.Messages;
+namespace GhostNetwork.Messages.Api.Handlers.Chats;
 
 public static class SearchHandler
 {
     public static async Task<IResult> HandleAsync(
         HttpResponse response,
-        [FromServices] IMessagesStorage messagesStorage,
-        [FromRoute] string chatId,
+        [FromServices] IChatsStorage chatsStorage,
+        [FromQuery, Required] Guid userId,
         [FromQuery] string cursor,
         [FromQuery, Range(1, 100)] int limit = 20)
     {
-        var filter = new Filter(chatId);
+        var filter = new Filter(userId);
         var paging = new Pagination(cursor, limit);
 
-        var messages = await messagesStorage.SearchAsync(filter, paging);
+        var chats = await chatsStorage.SearchAsync(filter, paging);
 
-        if (messages.Any())
+        if (chats.Any())
         {
-            response.Headers.Add("X-Cursor", messages.Last().Id);
+            response.Headers.Add("X-Cursor", chats.Last().Id);
         }
 
-        return Results.Ok(messages);
+        return Results.Ok(chats);
     }
 }

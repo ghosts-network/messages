@@ -35,11 +35,7 @@ namespace GhostNetwork.Messages.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers()
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.Converters.Add(new ObjectIdConverter());
-                });
+            services.AddControllers();
 
             services.AddLogging(x =>
             {
@@ -59,7 +55,6 @@ namespace GhostNetwork.Messages.Api
                 options.IncludeXmlComments(XmlPathProvider.XmlPath);
                 options.OperationFilter<AddResponseHeadersFilter>();
                 options.OperationFilter<OperationIdFilter>();
-                options.MapType<ObjectId>(() => new OpenApiSchema { Type = "string" });
             });
 
             services.AddScoped(_ =>

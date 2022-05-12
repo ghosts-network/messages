@@ -6,12 +6,14 @@ namespace GhostNetwork.Messages.Api.Helpers.OpenApi;
 
 public class OperationIdFilter : IOperationFilter
 {
+    private const string AsyncPrefix = "Async";
+
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
         if (context.ApiDescription.ActionDescriptor is ControllerActionDescriptor controllerActionDescriptor)
         {
             operation.OperationId =
-                $"{controllerActionDescriptor.ControllerName}_{controllerActionDescriptor.ActionName.Replace("Async", string.Empty)}";
+                $"{controllerActionDescriptor.ControllerName}_{controllerActionDescriptor.ActionName.Replace(AsyncPrefix, string.Empty)}";
         }
     }
 }

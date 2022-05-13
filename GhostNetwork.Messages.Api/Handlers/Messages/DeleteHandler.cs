@@ -13,11 +13,13 @@ public static class DeleteHandler
         [FromRoute] string chatId,
         [FromRoute] string messageId)
     {
-        if (!ObjectId.TryParse(chatId, out _) || !await messagesStorage.DeleteAsync(chatId, messageId))
+        if (!ObjectId.TryParse(chatId, out _) || !ObjectId.TryParse(messageId, out _))
         {
             return Results.NotFound();
         }
 
-        return Results.NoContent();
+        return await messagesStorage.DeleteAsync(chatId, messageId)
+            ? Results.NoContent()
+            : Results.NotFound();
     }
 }

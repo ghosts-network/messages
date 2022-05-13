@@ -25,7 +25,7 @@ public static class UpdateHandler
             return Results.BadRequest(new ProblemDetails { Title = "Content is too long" });
         }
 
-        if (!ObjectId.TryParse(chatId, out _))
+        if (!ObjectId.TryParse(chatId, out _) || !ObjectId.TryParse(messageId, out _))
         {
             return Results.NotFound();
         }

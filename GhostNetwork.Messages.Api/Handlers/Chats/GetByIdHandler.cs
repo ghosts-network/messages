@@ -17,10 +17,9 @@ public static class GetByIdHandler
             return Results.NotFound();
         }
 
-        var entity = await chatsStorage.GetByIdAsync(id);
-
-        return entity is null
-            ? Results.NotFound()
-            : Results.Ok(entity);
+        return await chatsStorage.GetByIdAsync(id)
+            is { } chat
+            ? Results.Ok(chat)
+            : Results.NotFound();
     }
 }

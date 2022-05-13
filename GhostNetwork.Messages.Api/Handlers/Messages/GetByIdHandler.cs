@@ -13,15 +13,14 @@ public static class GetByIdHandler
         [FromRoute] string chatId,
         [FromRoute] string messageId)
     {
-        if (!ObjectId.TryParse(chatId, out _))
+        if (!ObjectId.TryParse(chatId, out _) || !ObjectId.TryParse(messageId, out _))
         {
             return Results.NotFound();
         }
 
-        var message = await messagesStorage.GetByIdAsync(chatId, messageId);
-
-        return message is null
-            ? Results.NotFound()
-            : Results.Ok(message);
+        return await messagesStorage.GetByIdAsync(chatId, messageId)
+            is { } message
+                ? Results.Ok(message)
+                : Results.NotFound();
     }
 }

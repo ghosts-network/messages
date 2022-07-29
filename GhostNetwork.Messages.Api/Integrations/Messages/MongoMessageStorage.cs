@@ -16,7 +16,7 @@ public class MongoMessageStorage : IMessagesStorage
         this.context = context;
     }
 
-    public async Task<IReadOnlyCollection<Message>> SearchAsync(Filter filter, Pagination pagination)
+    public async Task<(IReadOnlyCollection<Message>, long)> SearchAsync(Filter filter, Pagination pagination)
     {
         var f = Builders<MessageEntity>.Filter.Eq(m => m.ChatId, filter.ChatId);
         var p = string.IsNullOrEmpty(pagination.Cursor)
@@ -24,13 +24,15 @@ public class MongoMessageStorage : IMessagesStorage
             : Builders<MessageEntity>.Filter.Lt(c => c.Id, pagination.Cursor);
         var s = Builders<MessageEntity>.Sort.Descending(m => m.Id);
 
+        var totalCount = await context.Messages.CountDocumentsAsync(f);
+
         var messages = await context.Messages
             .Find(f & p)
             .Sort(s)
             .Limit(pagination.Limit)
             .ToListAsync();
 
-        return messages.Select(ToDomain).ToList();
+        return (messages.Select(ToDomain).ToList(), totalCount);
     }
 
     public async Task<Message> GetByIdAsync(string chatId, string id)

@@ -30,7 +30,7 @@ public class SearchTests
 
         messagesStorageMock
             .Setup(c => c.SearchAsync(It.IsAny<Filter>(), It.IsAny<Pagination>()))
-            .ReturnsAsync(new[] { message });
+            .ReturnsAsync((new[] { message }, long.MinValue));
 
         var client = TestServerHelper.New(collection =>
         {
@@ -60,7 +60,7 @@ public class SearchTests
 
         messagesStorageMock
             .Setup(c => c.SearchAsync(It.IsAny<Filter>(), It.IsAny<Pagination>()))
-            .ReturnsAsync(new[] { message });
+            .ReturnsAsync((new[] { message }, long.MinValue));
 
         var client = TestServerHelper.New(collection =>
         {

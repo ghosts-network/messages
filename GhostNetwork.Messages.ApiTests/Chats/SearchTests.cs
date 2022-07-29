@@ -32,7 +32,7 @@ public class SearchTests
 
         chatsStorageMock
             .Setup(x => x.SearchAsync(It.IsAny<Filter>(), It.IsAny<Pagination>()))
-            .ReturnsAsync(new[] { chat });
+            .ReturnsAsync((new[] { chat }, long.MinValue));
 
         var client = TestServerHelper.New(collection =>
         {
@@ -65,7 +65,7 @@ public class SearchTests
 
         chatsStorageMock
             .Setup(x => x.SearchAsync(It.IsAny<Filter>(), It.IsAny<Pagination>()))
-            .ReturnsAsync(new[] { chat });
+            .ReturnsAsync((new[] { chat }, long.MinValue));
 
         var client = TestServerHelper.New(collection =>
         {
@@ -97,7 +97,7 @@ public class SearchTests
 
         chatsStorageMock
             .Setup(x => x.SearchAsync(It.IsAny<Filter>(), It.IsAny<Pagination>()))
-            .ReturnsAsync(new[] { chat });
+            .ReturnsAsync((new[] { chat }, long.MinValue));
 
         var client = TestServerHelper.New(collection =>
         {

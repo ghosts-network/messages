@@ -16,7 +16,7 @@ public class MongoChatStorage : IChatsStorage
         this.context = context;
     }
 
-    public async Task<IReadOnlyCollection<Chat>> SearchAsync(Filter filter, Pagination pagination)
+    public async Task<(IReadOnlyCollection<Chat>, long)> SearchAsync(Filter filter, Pagination pagination)
     {
         var f = Builders<ChatEntity>.Filter.Where(c => c.Participants.Any(x => x.Id == filter.UserId));
         var p = string.IsNullOrEmpty(pagination.Cursor)
@@ -24,13 +24,15 @@ public class MongoChatStorage : IChatsStorage
             : Builders<ChatEntity>.Filter.Lt(c => c.Id, pagination.Cursor);
         var s = Builders<ChatEntity>.Sort.Descending(c => c.Order);
 
+        var totalCount = await context.Chats.CountDocumentsAsync(f);
+
         var chats = await context.Chats
             .Find(f & p)
             .Sort(s)
             .Limit(pagination.Limit)
             .ToListAsync();
 
-        return chats.Select(entity => (Chat)entity).ToList();
+        return (chats.Select(entity => (Chat)entity).ToList(), totalCount);
     }
 
     public async Task<Chat> GetByIdAsync(string id)

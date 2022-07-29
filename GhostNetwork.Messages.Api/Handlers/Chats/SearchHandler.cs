@@ -31,11 +31,12 @@ public static class SearchHandler
         var filter = new Filter(userId);
         var paging = new Pagination(cursor, limit);
 
-        var chats = await chatsStorage.SearchAsync(filter, paging);
+        var (chats, totalCount) = await chatsStorage.SearchAsync(filter, paging);
 
         if (chats.Any())
         {
             response.Headers.Add("X-Cursor", chats.Last().Id);
+            response.Headers.Add("X-TotalCount", totalCount.ToString());
         }
 
         return Results.Ok(chats);

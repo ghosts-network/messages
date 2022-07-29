@@ -5,7 +5,7 @@ namespace GhostNetwork.Messages.Chats;
 
 public interface IChatsStorage
 {
-    Task<IReadOnlyCollection<Chat>> SearchAsync(Filter filter, Pagination pagination);
+    Task<(IReadOnlyCollection<Chat>, long)> SearchAsync(Filter filter, Pagination pagination);
 
     Task<Chat> GetByIdAsync(string id);
 

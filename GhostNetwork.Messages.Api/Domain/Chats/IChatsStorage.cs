@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace GhostNetwork.Messages.Chats;
+namespace GhostNetwork.Messages.Api.Domain.Chats;
 
 public interface IChatsStorage
 {

@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Chats;
+using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Api.Domain.Chats;
+using GhostNetwork.Messages.Integrations;
 using MongoDB.Driver;
 
-namespace GhostNetwork.Messages.Integrations.Chats;
+namespace GhostNetwork.Messages.Api.Integrations.Chats;
 
 public class MongoChatStorage : IChatsStorage
 {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace GhostNetwork.Messages.Domain;
+namespace GhostNetwork.Messages.Api.Domain.Messages;
 
 public interface IMessagesStorage
 {

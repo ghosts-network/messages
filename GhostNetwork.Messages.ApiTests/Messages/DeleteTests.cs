@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Domain;
+using GhostNetwork.Messages.Api.Domain.Chats;
+using GhostNetwork.Messages.Api.Domain.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Moq;

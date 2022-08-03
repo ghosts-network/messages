@@ -1,14 +1,15 @@
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Domain;
-using GhostNetwork.Messages.Users;
+using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Api.Domain.Chats;
+using GhostNetwork.Messages.Api.Domain.Messages;
+using GhostNetwork.Messages.Api.Domain.Users;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Moq;
 using NUnit.Framework;
-using Filter = GhostNetwork.Messages.Chats.Filter;
+using Filter = GhostNetwork.Messages.Api.Domain.Chats.Filter;
 
 namespace GhostNetwork.Messages.ApiTests.Chats;
 
@@ -65,7 +66,7 @@ public class SearchTests
 
         chatsStorageMock
             .Setup(x => x.SearchAsync(It.IsAny<Filter>(), It.IsAny<Pagination>()))
-            .ReturnsAsync((new[] { chat }, long.MinValue));
+            .ReturnsAsync((new[] { chat }, 1));
 
         var client = TestServerHelper.New(collection =>
         {
@@ -97,7 +98,7 @@ public class SearchTests
 
         chatsStorageMock
             .Setup(x => x.SearchAsync(It.IsAny<Filter>(), It.IsAny<Pagination>()))
-            .ReturnsAsync((new[] { chat }, long.MinValue));
+            .ReturnsAsync((new[] { chat }, 1));
 
         var client = TestServerHelper.New(collection =>
         {

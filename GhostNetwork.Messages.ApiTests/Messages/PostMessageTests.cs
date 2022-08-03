@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Api.Domain.Chats;
+using GhostNetwork.Messages.Api.Domain.Messages;
+using GhostNetwork.Messages.Api.Domain.Users;
 using GhostNetwork.Messages.Api.Handlers.Messages;
-using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Domain;
-using GhostNetwork.Messages.Users;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Moq;
@@ -132,5 +133,37 @@ public class PostMessageTests
 
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Test]
+    public async Task Chat_Is_NotFound()
+    {
+        // Arrange
+        var chatId = "invalid_id";
+
+        var now = DateTimeOffset.UtcNow;
+        var author = new UserInfo(Guid.NewGuid(), "Name", null);
+        var message = new Message(ObjectId.GenerateNewId().ToString(), chatId, author, now, now, "Test");
+
+        var chatsStorageMock = new Mock<IChatsStorage>();
+        var messagesStorageMock = new Mock<IMessagesStorage>();
+
+        messagesStorageMock
+            .Setup(c => c.SearchAsync(
+                It.IsAny<GhostNetwork.Messages.Api.Domain.Messages.Filter>(),
+                It.IsAny<Pagination>()))
+            .ReturnsAsync((new[] { message }, 0));
+
+        var client = TestServerHelper.New(collection =>
+        {
+            collection.AddScoped(_ => chatsStorageMock.Object);
+            collection.AddScoped(_ => messagesStorageMock.Object);
+        });
+
+        // Act
+        var response = await client.GetAsync($"/chats/{chatId}/messages");
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

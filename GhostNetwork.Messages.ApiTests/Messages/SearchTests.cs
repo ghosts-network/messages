@@ -75,4 +75,36 @@ public class SearchTests
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Test]
+    public async Task Incorrect_ChatId()
+    {
+        // Arrange
+        var chatId = "incorrect_id";
+
+        var now = DateTimeOffset.UtcNow;
+        var author = new UserInfo(Guid.NewGuid(), "Name", null);
+        var message = new Message(ObjectId.GenerateNewId().ToString(), chatId, author, now, now, "Test");
+
+        var chatsStorageMock = new Mock<IChatsStorage>();
+        var messagesStorageMock = new Mock<IMessagesStorage>();
+
+        messagesStorageMock
+            .Setup(c => c.SearchAsync(
+                It.IsAny<GhostNetwork.Messages.Api.Domain.Messages.Filter>(),
+                It.IsAny<Pagination>()))
+            .ReturnsAsync(new[] { message });
+
+        var client = TestServerHelper.New(collection =>
+        {
+            collection.AddScoped(_ => chatsStorageMock.Object);
+            collection.AddScoped(_ => messagesStorageMock.Object);
+        });
+
+        // Act
+        var response = await client.GetAsync($"/chats/{chatId}/messages");
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }

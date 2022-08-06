@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Domain;
-using GhostNetwork.Messages.Users;
+using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Api.Domain.Messages;
+using GhostNetwork.Messages.Api.Domain.Users;
 using MongoDB.Driver;
 
-namespace GhostNetwork.Messages.Integrations.Messages;
+namespace GhostNetwork.Messages.Api.Integrations.Messages;
 
 public class MongoMessageStorage : IMessagesStorage
 {

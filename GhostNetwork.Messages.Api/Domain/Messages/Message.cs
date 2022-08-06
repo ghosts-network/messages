@@ -1,7 +1,7 @@
 using System;
-using GhostNetwork.Messages.Users;
+using GhostNetwork.Messages.Api.Domain.Users;
 
-namespace GhostNetwork.Messages.Domain;
+namespace GhostNetwork.Messages.Api.Domain.Messages;
 
 public record Message(
     string Id,

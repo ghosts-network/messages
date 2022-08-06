@@ -1,8 +1,8 @@
-﻿using GhostNetwork.Messages.Integrations.Chats;
-using GhostNetwork.Messages.Integrations.Messages;
+﻿using GhostNetwork.Messages.Api.Integrations.Chats;
+using GhostNetwork.Messages.Api.Integrations.Messages;
 using MongoDB.Driver;
 
-namespace GhostNetwork.Messages.Integrations;
+namespace GhostNetwork.Messages.Api.Integrations;
 
 public class MongoDbContext
 {

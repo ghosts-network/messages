@@ -1,5 +1,5 @@
 using System;
 
-namespace GhostNetwork.Messages.Chats;
+namespace GhostNetwork.Messages.Api.Domain.Chats;
 
 public record Filter(Guid UserId);

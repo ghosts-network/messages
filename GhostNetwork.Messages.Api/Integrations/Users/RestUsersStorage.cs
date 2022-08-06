@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Users;
+using GhostNetwork.Messages.Api.Domain.Users;
 using GhostNetwork.Profiles.Api;
 using GhostNetwork.Profiles.Model;
 
-namespace GhostNetwork.Messages.Api.Users;
+namespace GhostNetwork.Messages.Api.Integrations.Users;
 
 public class RestUsersStorage : IUsersStorage
 {

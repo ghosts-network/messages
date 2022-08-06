@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Domain;
+using GhostNetwork.Messages.Api.Domain.Messages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;

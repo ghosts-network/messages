@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Users;
+using GhostNetwork.Messages.Api.Domain.Chats;
+using GhostNetwork.Messages.Api.Domain.Users;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace GhostNetwork.Messages.Integrations.Chats;
+namespace GhostNetwork.Messages.Api.Integrations.Chats;
 
 public class ChatEntity
 {

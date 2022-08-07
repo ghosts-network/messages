@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using GhostNetwork.Messages.Api.Domain;
+using GhostNetwork.Messages.Api.Domain.Chats;
+using GhostNetwork.Messages.Api.Domain.Messages;
+using GhostNetwork.Messages.Api.Domain.Users;
 using GhostNetwork.Messages.Api.Handlers.Messages;
-using GhostNetwork.Messages.Chats;
-using GhostNetwork.Messages.Domain;
-using GhostNetwork.Messages.Users;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using Moq;
@@ -132,5 +133,32 @@ public class PostMessageTests
 
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Test]
+    public async Task Incorrect_ChatId()
+    {
+        // Arrange
+        var model = new CreateMessageModel(Guid.NewGuid(), "test");
+        var chatId = "incorrectId";
+
+        var chatsStorageMock = new Mock<IChatsStorage>();
+        var messagesStorageMock = new Mock<IMessagesStorage>();
+
+        chatsStorageMock
+            .Setup(x => x.GetByIdAsync(chatId))
+            .ReturnsAsync(default(Chat));
+
+        var client = TestServerHelper.New(collection =>
+        {
+            collection.AddScoped(_ => chatsStorageMock.Object);
+            collection.AddScoped(_ => messagesStorageMock.Object);
+        });
+
+        // Act
+        var response = await client.PostAsync($"/chats/{chatId}/messages", model.AsJsonContent());
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using GhostNetwork.Messages.Chats;
+using GhostNetwork.Messages.Api.Domain.Chats;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;

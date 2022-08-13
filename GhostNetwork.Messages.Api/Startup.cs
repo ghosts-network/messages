@@ -36,10 +36,9 @@ namespace GhostNetwork.Messages.Api
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo
+                options.SwaggerDoc("api", new OpenApiInfo
                 {
                     Title = "GhostNetwork.Messages",
-                    Description = "Http client for GhostNetwork.Messages",
                     Version = "1.0.0",
                 });
             });
